@@ -109,28 +109,28 @@ class AdminController extends Controller
         $sekolahs = Sekolah::all();
         return view('admin.sekolah', compact('sekolahs'));
     }
+
     public function storeSekolah(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'nama_sekolah' => 'required|string|max:150',
             'alamat' => 'required|string',
         ]);
 
-        // 2. Buat Kode Lisensi Unik (Contoh: LENTERA-A1B2-C3D4)
-        $kodeLisensi = 'LENTERA-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4));
+        $kodeLisensiGuru = 'G-' . strtoupper(Str::random(3)) . '-' . strtoupper(Str::random(3));
 
-        // 3. Simpan ke Database
+        $kodeLisensiSiswa = 'S-' . strtoupper(Str::random(3)) . '-' . strtoupper(Str::random(3));
+
         Sekolah::create([
             'nama_sekolah' => $request->nama_sekolah,
             'alamat' => $request->alamat,
-            'kode_lisensi' => $kodeLisensi,
+            'kode_lisensi' => $kodeLisensiGuru,
+            'kode_lisensi_siswa' => $kodeLisensiSiswa, // Simpan ke kolom baru
         ]);
 
-        // 4. Kembali dengan pesan sukses
-        return redirect()->back()->with('success', 'Sekolah berhasil ditambahkan dengan Kode Lisensi: ' . $kodeLisensi);
+        return redirect()->back()->with('success', 'Sekolah berhasil ditambahkan! Kode Guru: ' . $kodeLisensiGuru . ', Kode Siswa: ' . $kodeLisensiSiswa);
     }
-    // Fungsi Update / Edit
+
     public function updateSekolah(Request $request, $id)
     {
         $request->validate([
@@ -138,12 +138,19 @@ class AdminController extends Controller
             'alamat' => 'required|string',
         ]);
 
-        $sekolah = Sekolah::findOrFail($id); // Cari sekolah berdasarkan ID
+        $sekolah = Sekolah::findOrFail($id);
+
+        // Update data umum
         $sekolah->update([
             'nama_sekolah' => $request->nama_sekolah,
             'alamat' => $request->alamat,
-            // Catatan: kode_lisensi sengaja tidak diupdate agar lisensi lama tetap berlaku
         ]);
+
+        // Jika checkbox "Reset Kode" dicentang, panggil helper model
+        if ($request->has('reset_lisensi')) {
+            $sekolah->regenerateLicenses();
+            return redirect()->back()->with('success', 'Data dan Kode Lisensi berhasil diperbarui/di-reset!');
+        }
 
         return redirect()->back()->with('success', 'Data sekolah berhasil diperbarui!');
     }

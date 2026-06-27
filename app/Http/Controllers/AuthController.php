@@ -17,65 +17,89 @@ class AuthController extends Controller
     {
         // Jika user sudah login, arahkan ke dashboard sesuai role
         if (Auth::check()) {
-            // Menggunakan optional helper untuk menghindari error jika relasi role null
             $role = optional(Auth::user()->role)->nama_role;
             return $role ? redirect()->route($role . '.dashboard') : redirect('/');
         }
 
-        return view('auth'); // Pastikan file resources/views/auth.blade.php ada
+        return view('auth');
     }
 
     public function showRegister()
     {
+        // Tetap memanggil data sekolah untuk dropdown form Guru BK
         $sekolahs = Sekolah::all();
         return view('register', compact('sekolahs'));
     }
 
     public function register(Request $request)
     {
-        // 1. Validasi Input Dasar
+        // 1. Validasi Input Dasar (Berlaku untuk Guru & Siswa)
         $request->validate([
             'role' => 'required|in:siswa,guru',
             'name' => 'required|string|max:150',
             'email' => 'required|string|email|max:255|unique:users',
-            'id_sekolah' => 'required|exists:sekolah,id_sekolah',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // 2. Validasi Khusus Guru (Wajib Kode Lisensi & Harus Cocok)
+        $id_sekolah = null; // Default: Null untuk antisipasi Siswa Mandiri
+
+        // 2. Validasi & Eksekusi Khusus Guru BK (Wajib Sekolah & Kode Lisensi Guru)
         if ($request->role === 'guru') {
             $request->validate([
+                'id_sekolah' => 'required|exists:sekolahs,id_sekolah', // Pastikan nama tabel database Anda 'sekolahs' atau 'sekolah'
                 'kode_lisensi' => 'required|string',
             ], [
+                'id_sekolah.required' => 'Pilih instansi sekolah untuk pendaftaran Guru BK.',
                 'kode_lisensi.required' => 'Kode Lisensi wajib diisi untuk pendaftaran Guru BK.'
             ]);
 
             $sekolah = Sekolah::find($request->id_sekolah);
 
-            if ($sekolah->kode_lisensi !== $request->kode_lisensi) {
+            if (!$sekolah || $sekolah->kode_lisensi !== $request->kode_lisensi) {
                 return back()->withErrors([
-                    'kode_lisensi' => 'Kode Lisensi yang Anda masukkan tidak valid untuk instansi ini.'
-                ])->withInput(); // withInput mengembalikan data yang sudah diketik agar tidak perlu mengisi ulang
+                    'kode_lisensi' => 'Kode Lisensi Guru yang Anda masukkan tidak valid untuk instansi ini.'
+                ])->withInput();
             }
+
+            $id_sekolah = $request->id_sekolah;
         }
+
+        // 3. Validasi & Eksekusi Khusus Siswa (Lisensi Opsional)
         if ($request->role === 'siswa') {
             $request->validate([
                 'angkatan' => 'required|numeric|digits:4',
+                'kode_lisensi_siswa' => 'nullable|string', // Opsional
             ]);
+
+            // Jika siswa memasukkan kode lisensi di form untuk membuka fitur konseling
+            if ($request->filled('kode_lisensi_siswa')) {
+                // Cari sekolah yang memiliki kode lisensi siswa tersebut
+                $sekolah = Sekolah::where('kode_lisensi_siswa', $request->kode_lisensi_siswa)->first();
+
+                if (!$sekolah) {
+                    return back()->withErrors([
+                        'kode_lisensi_siswa' => 'Kode Registrasi Sekolah tidak ditemukan atau tidak valid.'
+                    ])->withInput();
+                }
+
+                // Jika valid, hubungkan siswa dengan sekolah tersebut
+                $id_sekolah = $sekolah->id_sekolah ?? $sekolah->id; 
+            }
         }
-        // 3. Tentukan ID Role (Guru = 2, Siswa = 3)
+
+        // 4. Tentukan ID Role
         $id_role = $request->role === 'guru' ? 2 : 3;
 
-        // 4. Simpan ke tabel users
+        // 5. Simpan ke tabel users
         $user = User::create([
             'nama' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'id_role' => $id_role,
-            'id_sekolah' => $request->id_sekolah,
+            'id_sekolah' => $id_sekolah, // Berisi ID untuk Guru & Siswa Terdaftar, Null untuk Siswa Mandiri
         ]);
 
-        // 5. Buat profil default di tabel guru atau siswa
+        // 6. Buat profil default di tabel guru atau siswa
         if ($id_role === 3) {
             Siswa::create([
                 'id_user' => $user->id,
@@ -90,7 +114,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // 6. Login otomatis & Arahkan ke dashboard
+        // 7. Login otomatis & Arahkan ke dashboard
         Auth::login($user);
 
         return redirect()->route($request->role . '.dashboard')->with('success', 'Akun berhasil dibuat!');
@@ -107,15 +131,12 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
-
-            // Mengambil nama role dari relasi
             $role = optional($user->role)->nama_role;
 
             if ($role) {
                 return redirect()->route($role . '.dashboard');
             }
 
-            // Jika role tidak ditemukan
             Auth::logout();
             return back()->withErrors(['email' => 'Akun Anda tidak memiliki peran yang terdaftar.']);
         }

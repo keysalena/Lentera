@@ -58,7 +58,7 @@
                         <span>Hasil Analisis</span>
                     </a>
                 </li>
-
+                @if(Auth::user()->id_sekolah != null)
                 <li>
                     <a href="{{ route('siswa.konsultasi') }}" class="{{ request()->routeIs('siswa.konsultasi') ? 'active' : '' }}">
                         <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,6 +67,23 @@
                         <span>Konsultasi Karier</span>
                     </a>
                 </li>
+                @else
+                <li style="opacity: 0.5; cursor: not-allowed;" title="Masukkan kode lisensi sekolah di profil untuk mengaktifkan fitur ini">
+                    <a href="#" style="pointer-events: none; display: flex; align-items: center; justify-content: space-between; width: 100%; padding-right: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <span>Konsultasi Karier</span>
+                        </div>
+
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--ink-60);">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </a>
+                </li>
+                @endif
                 <li>
                     <a href="{{ route('siswa.profil') }}" class="{{ request()->routeIs('siswa.profil') ? 'active' : '' }}">
                         <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">

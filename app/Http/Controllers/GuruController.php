@@ -17,7 +17,9 @@ class GuruController extends Controller
     public function dashboard()
     {
         $guru = \Illuminate\Support\Facades\Auth::user();
-
+        $sekolah = \App\Models\Sekolah::find($guru->id_sekolah);
+        $nama_sekolah = $sekolah ? $sekolah->nama_sekolah : 'Sekolah LENTERA';
+        $kode_lisensi_siswa = $sekolah ? $sekolah->kode_lisensi_siswa : 'KODE-BELUM-DISET';
         // 1. Ambil Nama Sekolah
         $sekolah = \App\Models\Sekolah::find($guru->id_sekolah);
         $nama_sekolah = $sekolah ? $sekolah->nama_sekolah : 'Sekolah LENTERA';
@@ -77,7 +79,7 @@ class GuruController extends Controller
             // Kita gunakan nama jurusan tersebut sebagai Bidang Dominan
             $bidang_dominan = $jurusan_terbanyak;
         }
-        return view('guru.ringkasan', compact('nama_sekolah', 'total_siswa', 'laporan_diakses', 'aktivitas_terkini', 'bidang_dominan'));
+        return view('guru.ringkasan', compact('nama_sekolah', 'kode_lisensi_siswa', 'total_siswa', 'laporan_diakses', 'aktivitas_terkini', 'bidang_dominan'));
     }
 
     // Halaman Daftar Siswa

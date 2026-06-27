@@ -7,9 +7,7 @@
     <title>@yield('title', 'LENTERA — Daftar')</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="/css/style.css?v={{ time() }}">
 </head>
 
@@ -17,7 +15,7 @@
     <div style="background: var(--cream); min-height: calc(100vh - 72px); display: flex; align-items: center; justify-content: center; padding: 40px 24px;">
         <div class="auth-container" style="background: var(--white); width: 100%; max-width: 520px; padding: 40px; border-radius: 20px; border: 1px solid rgba(171, 168, 159, 0.25); box-shadow: 0 12px 32px rgba(87, 94, 112, 0.06);">
 
-            <div style="text-align: center; margin-bottom: 32px;">
+            <div style="text-align: center; margin-bottom: 24px;">
                 <div style="width: 48px; height: 48px; background: var(--amber); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                     <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px;">
                         <path d="M10 2L12.5 7.5L18 8.5L14 12.5L15 18L10 15.5L5 18L6 12.5L2 8.5L7.5 7.5L10 2Z" fill="white" />
@@ -27,6 +25,21 @@
                 <p style="font-size: 14px; color: var(--ink-60);">Lengkapi data di bawah untuk memulai eksplorasi kariermu</p>
             </div>
 
+            @if(session('error'))
+                <div style="background: #FEE2E2; color: #B91C1C; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 24px; text-align: center; border: 1px solid #FECACA;">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div style="background: #FEE2E2; color: #B91C1C; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 24px; border: 1px solid #FECACA;">
+                    <ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <form action="{{ route('register') }}" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
                 @csrf
 
@@ -54,34 +67,37 @@
                     <label for="email" style="display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">Alamat Email</label>
                     <input type="email" id="email" name="email" value="{{ old('email') }}" required placeholder="nama@sekolah.sch.id"
                         style="width: 100%; padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; font-size: 14px; background: var(--paper); outline: none;">
-                    @error('email') <p style="color: #BA1A1A; font-size: 12px; margin-top: 4px;">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label for="school" style="display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">Asal Sekolah</label>
-                    <select id="school" name="id_sekolah" required style="width: 100%; padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; font-size: 14px; background: var(--paper); outline: none; cursor: pointer;">
+                <div id="school_container" style="display: none;">
+                    <label for="school" style="display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">Instansi Sekolah (Khusus Guru)</label>
+                    <select id="school" name="id_sekolah" style="width: 100%; padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; font-size: 14px; background: var(--paper); outline: none; cursor: pointer;">
                         <option value="" disabled selected>Pilih asal sekolahmu...</option>
                         @foreach($sekolahs as $sekolah)
-                        <option value="{{ $sekolah->id_sekolah }}" {{ old('id_sekolah') == $sekolah->id_sekolah ? 'selected' : '' }}>
+                        <option value="{{ $sekolah->id_sekolah ?? $sekolah->id }}" {{ old('id_sekolah') == ($sekolah->id_sekolah ?? $sekolah->id) ? 'selected' : '' }}>
                             {{ $sekolah->nama_sekolah }}
                         </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div id="lisensi_container" style="display: none; background: rgba(201, 123, 42, 0.05); border: 1px dashed var(--amber); padding: 16px; border-radius: 10px;">
-                    <label for="kode_lisensi" style="display: block; font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 6px;">Kode Lisensi Sekolah</label>
-                    <input type="text" id="kode_lisensi" name="kode_lisensi" value="{{ old('kode_lisensi') }}" placeholder="Contoh: LENTERA-XXXX-XXXX"
-                        style="width: 100%; padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 8px; font-size: 14px; outline: none; background: var(--white);">
-                    <p style="font-size: 11px; color: var(--ink-60); margin-top: 6px;">Diperlukan untuk memverifikasi Anda sebagai staf pendidik resmi.</p>
-                    @error('kode_lisensi') <p style="color: #BA1A1A; font-size: 12px; margin-top: 4px; font-weight: 600;">{{ $message }}</p> @enderror
+                <div id="lisensi_guru_container" style="display: none; background: rgba(201, 123, 42, 0.05); border: 1px dashed var(--amber); padding: 16px; border-radius: 10px;">
+                    <label for="kode_lisensi" style="display: block; font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 6px;">Kode Lisensi Staf Pendidik</label>
+                    <input type="text" id="kode_lisensi" name="kode_lisensi" value="{{ old('kode_lisensi') }}" placeholder="Contoh: LENTERA-GURU-XXXX"
+                        style="width: 100%; padding: 12px 16px; border: 1px solid rgba(201, 123, 42, 0.3); border-radius: 8px; font-size: 14px; outline: none; background: var(--white);">
+                    <p style="font-size: 11px; color: var(--ink-60); margin-top: 6px;">Diperlukan untuk memverifikasi Anda sebagai staf BK resmi.</p>
                 </div>
-                <!-- ── ANGKATAN (HANYA MUNCUL JIKA SISWA) ── -->
                 <div id="angkatan_container" style="display: block;">
-                    <label for="angkatan" style="display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">Tahun Masuk</label>
-                    <input type="text" id="angkatan" name="angkatan" value="{{ old('angkatan') }}" required placeholder="Contoh: 2024"
+                    <label for="angkatan" style="display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">Tahun Masuk (Angkatan)</label>
+                    <input type="text" id="angkatan" name="angkatan" value="{{ old('angkatan') }}" placeholder="Contoh: 2024"
                         style="width: 100%; padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; font-size: 14px; background: var(--paper); outline: none; transition: border-color 0.2s;">
-                    @error('angkatan') <p style="color: #BA1A1A; font-size: 12px; margin-top: 4px;">{{ $message }}</p> @enderror
+                </div>
+
+                <div id="lisensi_siswa_container" style="display: block; background: rgba(16, 185, 129, 0.05); border: 1px dashed #10B981; padding: 16px; border-radius: 10px;">
+                    <label for="kode_lisensi_siswa" style="display: block; font-size: 13px; font-weight: 700; color: #065F46; margin-bottom: 6px;">Kode Registrasi Sekolah <span style="font-weight: normal; color: var(--ink-60);">(Opsional)</span></label>
+                    <input type="text" id="kode_lisensi_siswa" name="kode_lisensi_siswa" value="{{ old('kode_lisensi_siswa') }}" placeholder="Masukkan kode dari Guru BK..."
+                        style="width: 100%; padding: 12px 16px; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 14px; outline: none; background: var(--white);">
+                    <p style="font-size: 11px; color: var(--ink-60); margin-top: 6px;">Kosongkan jika kamu mendaftar secara mandiri. Isi kode untuk membuka fitur Konsultasi Karier dengan Guru BK.</p>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div>
@@ -97,9 +113,10 @@
                 </div>
 
                 <div style="margin-top: 8px;">
-                    <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; font-size: 15px; border-radius: 12px; font-weight: 700;">Buat Akun Baru</button>
+                    <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; font-size: 15px; border-radius: 12px; font-weight: 700; background: var(--amber); color: white; border: none; cursor: pointer;">Buat Akun Baru</button>
                 </div>
             </form>
+            
             <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--cream);">
                 <p style="font-size: 14px; color: var(--ink-60);">
                     Sudah memiliki akun?
@@ -108,41 +125,62 @@
             </div>
         </div>
     </div>
-</body>
-
-</html>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const roleSiswa = document.getElementById('role_siswa');
         const roleGuru = document.getElementById('role_guru');
 
-        const lisensiContainer = document.getElementById('lisensi_container');
+        // Elemen khusus Guru
+        const schoolContainer = document.getElementById('school_container');
+        const schoolSelect = document.getElementById('school');
+        const lisensiGuruContainer = document.getElementById('lisensi_guru_container');
         const kodeLisensiInput = document.getElementById('kode_lisensi');
 
+        // Elemen khusus Siswa
         const angkatanContainer = document.getElementById('angkatan_container');
         const angkatanInput = document.getElementById('angkatan');
+        const lisensiSiswaContainer = document.getElementById('lisensi_siswa_container');
+        const kodeLisensiSiswaInput = document.getElementById('kode_lisensi_siswa');
 
         function toggleFields() {
             if (roleGuru.checked) {
-                // Tampilkan Lisensi Guru, Sembunyikan Angkatan Siswa
-                lisensiContainer.style.display = 'block';
+                // MENGAKTIFKAN FORM GURU BK
+                schoolContainer.style.display = 'block';
+                schoolSelect.setAttribute('required', 'required');
+
+                lisensiGuruContainer.style.display = 'block';
                 kodeLisensiInput.setAttribute('required', 'required');
 
+                // MENYEMBUNYIKAN FORM SISWA
                 angkatanContainer.style.display = 'none';
                 angkatanInput.removeAttribute('required');
+
+                lisensiSiswaContainer.style.display = 'none';
+                // (Kode siswa opsional, jadi tidak ada atribut required yang perlu dihapus)
             } else {
-                // Tampilkan Angkatan Siswa, Sembunyikan Lisensi Guru
-                lisensiContainer.style.display = 'none';
+                // MENYEMBUNYIKAN FORM GURU BK
+                schoolContainer.style.display = 'none';
+                schoolSelect.removeAttribute('required');
+
+                lisensiGuruContainer.style.display = 'none';
                 kodeLisensiInput.removeAttribute('required');
 
+                // MENGAKTIFKAN FORM SISWA
                 angkatanContainer.style.display = 'block';
                 angkatanInput.setAttribute('required', 'required');
+
+                lisensiSiswaContainer.style.display = 'block';
             }
         }
 
+        // Jalankan fungsi saat radio button berubah
         roleSiswa.addEventListener('change', toggleFields);
         roleGuru.addEventListener('change', toggleFields);
+        
+        // Jalankan fungsi satu kali saat halaman pertama dimuat (menjaga state dari old('role'))
         toggleFields();
     });
 </script>
+</body>
+</html>

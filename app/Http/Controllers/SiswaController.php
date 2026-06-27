@@ -12,6 +12,7 @@ use App\Models\NilaiAkademik;
 use App\Models\SkorKemampuan;
 use App\Models\MataPelajaran;
 use App\Models\Kemampuan;
+use App\Models\Sekolah;
 use Illuminate\Support\Facades\Http;
 
 class SiswaController extends Controller
@@ -181,8 +182,8 @@ class SiswaController extends Controller
                         $gambar->update(['hasil_ocr' => json_encode($hasilJson)]);
 
                         // Update Status Eksplorasi & Siswa
-                        $eksplorasi->update(['status' => 'selesai']); 
-                        $siswa->update(['status_data' => 'lengkap']); 
+                        $eksplorasi->update(['status' => 'selesai']);
+                        $siswa->update(['status_data' => 'lengkap']);
 
                         return redirect()->route('siswa.hasil')->with('success', 'Analisis berhasil! Berikut adalah hasil pemetaan AI LENTERA.');
                     } else {
@@ -234,22 +235,37 @@ class SiswaController extends Controller
     {
         $user = Auth::user();
 
+        // 1. Validasi
         $request->validate([
             'nama' => 'required|string|max:150',
             'nisn' => 'required|string|max:50',
             'jenis_kelamin' => 'required|in:L,P',
+            'kode_lisensi' => 'nullable|string',
         ]);
 
-        // Update nama di tabel users
+        // 2. Update data dasar (Nama di Users, NISN/JK di Siswa)
         $user->update(['nama' => $request->nama]);
 
-        // Update NISN dan Jenis Kelamin di tabel siswa
         $siswa = Siswa::where('id_user', $user->id)->first();
         if ($siswa) {
             $siswa->update([
                 'nisn' => $request->nisn,
                 'jenis_kelamin' => $request->jenis_kelamin,
             ]);
+        }
+
+        // 3. LOGIKA UPDATE LISENSI (Hanya jika siswa belum punya sekolah)
+        if ($request->filled('kode_lisensi') && is_null($user->id_sekolah)) {
+            $sekolah = Sekolah::where('kode_lisensi_siswa', $request->kode_lisensi)->first();
+
+            if ($sekolah) {
+                // Update id_sekolah pada tabel users
+                $user->update(['id_sekolah' => $sekolah->id_sekolah]);
+
+                return redirect()->back()->with('success', 'Profil diperbarui & Lisensi Sekolah berhasil diaktifkan!');
+            } else {
+                return redirect()->back()->with('error', 'Kode lisensi tidak valid, fitur konseling tidak dapat diaktifkan.');
+            }
         }
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');

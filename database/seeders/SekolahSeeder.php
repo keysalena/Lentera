@@ -14,9 +14,14 @@ class SekolahSeeder extends Seeder
             'nama_sekolah' => 'SMAN 5 Malang',
             'alamat' => 'Jl. Ikan Piranha Atas No.185, Malang',
             'kode_lisensi' => sprintf(
-                'LENTERA-%s-%s',
-                strtoupper(Str::random(4)),
-                strtoupper(Str::random(4))
+                'G-%s-%s',
+                strtoupper(Str::random(3)),
+                strtoupper(Str::random(3))
+            ),
+            'kode_lisensi_siswa' => sprintf(
+                'S-%s-%s',
+                strtoupper(Str::random(3)),
+                strtoupper(Str::random(3))
             ),
         ]);
     }

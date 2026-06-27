@@ -58,7 +58,40 @@
                                 style="width: 100%; padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; font-size: 14px; background: var(--white); color: var(--ink); outline: none; transition: border-color 0.2s;">
                             @error('nisn') <p style="color: #BA1A1A; font-size: 12px; margin-top: 4px;">{{ $message }}</p> @enderror
                         </div>
+                        <div style="margin-top: 0px; padding: 20px; background: rgba(16, 185, 129, 0.05); border: 1px dashed #10B981; border-radius: 12px;">
+                            <label for="kode_lisensi" style="display: block; font-size: 13px; font-weight: 700; color: #065F46; margin-bottom: 8px;">
+                                Kode Lisensi Sekolah (Aktivasi Fitur Konsultasi Karier)
+                            </label>
 
+                            <form action="{{ route('siswa.profil.update') }}" method="POST">
+                                @csrf
+                                @method('PUT')
+
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="kode_lisensi" name="kode_lisensi"
+                                        value="{{ Auth::user()->id_sekolah ? 'TERAKTIVASI' : old('kode_lisensi') }}"
+                                        placeholder="Masukkan kode lisensi..."
+                                        {{ Auth::user()->id_sekolah ? 'disabled' : '' }}
+                                        style="flex: 1; padding: 12px 16px; border: 1px solid #10B981; border-radius: 8px; font-size: 14px; background: {{ Auth::user()->id_sekolah ? '#f0f9f4' : 'white' }};">
+
+                                    @if(!Auth::user()->id_sekolah)
+                                    <button type="submit" style="background: #10B981; color: white; padding: 0 20px; border-radius: 8px; font-weight: 600; font-size: 13px; border: none; cursor: pointer;">
+                                        Aktifkan
+                                    </button>
+                                    @else
+                                    <span style="display: flex; align-items: center; color: #059669; font-size: 12px; font-weight: 600; padding: 0 10px;">
+                                        ✓ Aktif
+                                    </span>
+                                    @endif
+                                </div>
+                            </form>
+
+                            @if(!Auth::user()->id_sekolah)
+                            <p style="font-size: 11px; color: #065F46; margin-top: 8px;">
+                                Masukkan kode unik dari Guru BK untuk membuka akses Konsultasi Karier dan fitur eksklusif lainnya.
+                            </p>
+                            @endif
+                        </div>
                         <div>
                             <label for="jenis_kelamin" style="display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 8px;">Jenis Kelamin</label>
                             <select id="jenis_kelamin" name="jenis_kelamin" required

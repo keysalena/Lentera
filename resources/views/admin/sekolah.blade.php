@@ -2,7 +2,7 @@
 
 @section('dashboard_content')
 <div class="admin-sekolah" style="animation: fadeIn 0.4s ease-in-out;">
-    
+
     @if(session('success'))
     <div style="background: #D1FAE5; color: #065F46; padding: 16px 20px; border-radius: 12px; margin-bottom: 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; border: 1px solid #34D399;">
         <span>{{ session('success') }}</span>
@@ -15,14 +15,14 @@
             <h2 style="font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink);">Data Mitra Sekolah</h2>
             <p style="font-size: 14px; color: var(--ink-60);">Kelola instansi dan pengguna platform LENTERA.</p>
         </div>
-        
+
         <div style="display: flex; gap: 16px; align-items: center;">
-            <input type="text" placeholder="Cari nama sekolah..." 
+            <input type="text" placeholder="Cari nama sekolah..."
                 style="padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; width: 240px; outline: none; font-size: 13px;">
-            
+
             <button onclick="openAddModal()" style="background: var(--amber); color: var(--white); border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;">
-                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
                 Tambah Mitra Baru
             </button>
@@ -35,7 +35,7 @@
                 <tr>
                     <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">INFORMASI SEKOLAH</th>
                     <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">KODE LISENSI</th>
-                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">TOTAL GURU BK</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">TOTAL GURU</th>
                     <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">TOTAL SISWA</th>
                     <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">ALAMAT</th>
                     <th style="padding: 16px 24px; text-align: right; font-size: 12px; color: var(--ink-60);">TINDAKAN</th>
@@ -49,8 +49,13 @@
                         <div style="font-size: 12px; color: var(--ink-60); margin-top: 4px;">Terdaftar: {{ $sekolah->created_at->format('d M Y') }}</div>
                     </td>
                     <td style="padding: 20px 24px;">
-                        <div style="font-size: 13px; font-weight: 700; color: var(--amber); background: rgba(201, 123, 42, 0.1); display: inline-block; padding: 4px 10px; border-radius: 6px;">
-                            {{ $sekolah->kode_lisensi }}
+                        <div style="font-size: 12px;">
+                            <span style="display: block; font-weight: 700; color: var(--ink);">Guru:</span>
+                            <span style="color: var(--amber);">{{ $sekolah->kode_lisensi }}</span>
+                        </div>
+                        <div style="font-size: 12px; margin-top: 4px;">
+                            <span style="display: block; font-weight: 700; color: var(--ink);">Siswa:</span>
+                            <span style="color: #10B981;">{{ $sekolah->kode_lisensi_siswa ?? '-' }}</span>
                         </div>
                     </td>
                     <td style="padding: 20px 24px;">
@@ -73,9 +78,9 @@
                             <button type="button" onclick="openEditModal('{{ $sekolah->id_sekolah }}', '{{ addslashes($sekolah->nama_sekolah) }}', '{{ addslashes($sekolah->alamat) }}')" style="background:none; border:none; color: var(--ink-60); font-weight: 600; font-size: 13px; cursor: pointer; padding:0;">
                                 Edit
                             </button>
-                            
+
                             <span style="color: var(--cream);">|</span>
-                            
+
                             <form action="{{ route('admin.sekolah.destroy', $sekolah->id_sekolah) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus {{ $sekolah->nama_sekolah }}? Semua data terkait akan disembunyikan.');" style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
@@ -108,7 +113,7 @@
             <form id="sekolahForm" action="" method="POST">
                 @csrf
                 <input type="hidden" name="_method" id="formMethod" value="POST">
-                
+
                 <div style="padding: 32px;">
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px;">Nama Sekolah</label>
@@ -124,6 +129,12 @@
                         <p style="font-size: 12px; color: var(--amber); margin: 0; line-height: 1.5;">
                             <strong>Catatan:</strong> Kode Lisensi akan dibuat otomatis saat pendaftaran. (Abaikan jika sedang mode Edit).
                         </p>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: #FFF7ED; border-radius: 8px;" id="lisensiInfo">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--amber);">
+                            <input type="checkbox" name="reset_lisensi" value="1">
+                            <span>Ganti/Reset Kode Lisensi (Generate Baru)</span>
+                        </label>
                     </div>
                 </div>
 
@@ -149,14 +160,16 @@
     const inputNama = document.getElementById('inputNama');
     const inputAlamat = document.getElementById('inputAlamat');
     const lisensiNote = document.getElementById('lisensiNote');
+    const lisensiInfo = document.getElementById('lisensiInfo');
 
     // 1. Fungsi Tambah
     function openAddModal() {
         title.innerText = 'Tambah Mitra Baru';
-        form.action = "{{ route('admin.sekolah.store') }}"; 
-        methodInput.value = 'POST'; 
+        form.action = "{{ route('admin.sekolah.store') }}";
+        methodInput.value = 'POST';
         lisensiNote.style.display = 'block'; // Tampilkan info lisensi otomatis
-        
+        lisensiInfo.style.display = 'none'; // Sembunyikan info lisensi
+
         inputNama.value = '';
         inputAlamat.value = '';
         modal.style.display = 'flex';
@@ -168,7 +181,8 @@
         form.action = "/admin/sekolah/" + id; // Arahkan ke URL Update
         methodInput.value = 'PUT'; // Mode Edit
         lisensiNote.style.display = 'none'; // Sembunyikan karena edit tidak merubah lisensi
-        
+        lisensiInfo.style.display = 'block'; // Tampilkan info lisensi
+
         inputNama.value = nama;
         inputAlamat.value = alamat;
         modal.style.display = 'flex';
