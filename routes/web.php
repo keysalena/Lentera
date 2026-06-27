@@ -61,7 +61,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profil', [GuruController::class, 'profil'])->name('profil');
         Route::put('/profil', [GuruController::class, 'updateProfil'])->name('profil.update');
-
+        // ── ROUTE BARU: Halaman Dominasi Bidang (Daftar Rekomendasi Bidang Siswa) ──
+        Route::get('/dominasi-bidang', [GuruController::class, 'dominasiBidang'])->name('dominasi');
         // Route Ruang Konsultasi (Smart Triage)
         Route::get('/konsultasi', [GuruController::class, 'konsultasi'])->name('konsultasi');
         Route::put('/konsultasi/{id}/jadwal', [GuruController::class, 'jadwalkanKonsultasi'])->name('konsultasi.jadwal');

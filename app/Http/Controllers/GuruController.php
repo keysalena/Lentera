@@ -58,7 +58,7 @@ class GuruController extends Controller
     }
 
     // Halaman Detail Profil Siswa
-// Halaman Detail Siswa (Diakses oleh Guru)
+    // Halaman Detail Siswa (Diakses oleh Guru)
     public function detailSiswa($id)
     {
         $guru = Auth::user();
@@ -103,7 +103,62 @@ class GuruController extends Controller
         // 4. Kirim semua data tersebut ke file guru/siswa_detail.blade.php
         return view('guru.siswa_detail', compact('siswaUser', 'dataSiswa', 'eksplorasi', 'nilaiAkademik', 'ml_data'));
     }
+    public function dominasiBidang(Request $request)
+    {
+        $user = Auth::user();
 
+        // 1. DATA UNTUK DIAGRAM BATANG (rekap jumlah siswa per bidang)
+        $rekapBidang = $this->hitungRekapBidang($user->id_sekolah);
+
+        // 2. DATA UNTUK TABEL SISWA (format & query SAMA seperti method siswa())
+        $query = User::with('siswa')
+            ->where('id_sekolah', $user->id_sekolah)
+            ->whereHas('role', function ($q) {
+                $q->where('nama_role', 'siswa');
+            });
+
+        if ($request->has('cari') && $request->cari != '') {
+            $query->where('nama', 'like', '%' . $request->cari . '%');
+        }
+
+        $siswas = $query->paginate(10);
+
+        return view('guru.dominasi', compact('rekapBidang', 'siswas'));
+    }
+
+    private function hitungRekapBidang($id_sekolah)
+    {
+        $idUserSiswaSekolah = User::where('id_sekolah', $id_sekolah)
+            ->whereHas('role', function ($q) {
+                $q->where('nama_role', 'siswa');
+            })->pluck('id');
+
+        $idSiswaSekolah = Siswa::whereIn('id_user', $idUserSiswaSekolah)->pluck('id_siswa');
+
+        $eksplorasiSelesai = Eksplorasi::whereIn('id_siswa', $idSiswaSekolah)
+            ->where('status', 'selesai')
+            ->get();
+
+        $rekapBidang = [];
+
+        foreach ($eksplorasiSelesai as $e) {
+            $gambar = EksplorasiGambar::where('id_eksplorasi', $e->id_eksplorasi)->first();
+            if (!$gambar || !$gambar->hasil_ocr) {
+                continue;
+            }
+
+            $hasil = json_decode($gambar->hasil_ocr, true);
+            $bidang = $hasil['rekomendasi_bidang'] ?? $hasil['bidang'] ?? null;
+
+            if ($bidang) {
+                $rekapBidang[$bidang] = ($rekapBidang[$bidang] ?? 0) + 1;
+            }
+        }
+
+        arsort($rekapBidang); // urutkan dari yang paling banyak muncul
+
+        return $rekapBidang;
+    }
     // Halaman Kelengkapan Profil Guru
     public function profil()
     {
