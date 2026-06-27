@@ -38,7 +38,7 @@
                         <div style="font-size: 12px; color: var(--ink-60);">{{ $siswa->email }}</div>
                     </td>
                     <td style="padding: 20px 24px; font-size: 14px; font-weight: 600; color: var(--ink);">
-                        {{ $siswa->angkatan }}
+                        {{ $siswa->siswa->angkatan }}
                     </td>
                     <td style="padding: 20px 24px;">
                         <!-- Logika sederhana: Jika NISN masih pakai 'S' (default saat daftar), berarti belum lengkap -->

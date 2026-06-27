@@ -61,6 +61,11 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profil', [GuruController::class, 'profil'])->name('profil');
         Route::put('/profil', [GuruController::class, 'updateProfil'])->name('profil.update');
+
+        // Route Ruang Konsultasi (Smart Triage)
+        Route::get('/konsultasi', [GuruController::class, 'konsultasi'])->name('konsultasi');
+        Route::put('/konsultasi/{id}/jadwal', [GuruController::class, 'jadwalkanKonsultasi'])->name('konsultasi.jadwal');
+        Route::put('/konsultasi/{id}/selesai', [GuruController::class, 'selesaikanKonsultasi'])->name('konsultasi.selesai');
     });
 
     // --- DASHBOARD SISWA ---
@@ -69,7 +74,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/input', [SiswaController::class, 'input'])->name('input');
         Route::post('/input', [SiswaController::class, 'storeEksplorasi'])->name('eksplorasi.store');
         Route::get('/hasil', [SiswaController::class, 'hasil'])->name('hasil');
-
+        Route::get('/konsultasi', [SiswaController::class, 'konsultasi'])->name('konsultasi');
+        Route::post('/konsultasi', [SiswaController::class, 'storeKonsultasi'])->name('konsultasi.store');
         // Route untuk Profil Siswa
         Route::get('/profil', [SiswaController::class, 'profil'])->name('profil');
         Route::put('/profil', [SiswaController::class, 'updateProfil'])->name('profil.update');

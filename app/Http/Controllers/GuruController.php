@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Guru;
+use App\Models\Siswa;
+use App\Models\Eksplorasi;
+use App\Models\NilaiAkademik;
+use App\Models\EksplorasiGambar;
 
 class GuruController extends Controller
 {
@@ -54,16 +58,50 @@ class GuruController extends Controller
     }
 
     // Halaman Detail Profil Siswa
+// Halaman Detail Siswa (Diakses oleh Guru)
     public function detailSiswa($id)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $guru = Auth::user();
 
-        // Pastikan guru hanya bisa melihat siswa dari sekolahnya sendiri (Keamanan)
-        $siswa = \App\Models\User::with('siswa')
-            ->where('id_sekolah', $user->id_sekolah)
+        // 1. Ambil data akun User (Pastikan dia siswa dan satu sekolah dengan guru)
+        $siswaUser = User::where('id_role', 3)
+            ->where('id_sekolah', $guru->id_sekolah)
             ->findOrFail($id);
 
-        return view('guru.siswa_detail', compact('siswa'));
+        // 2. Cari data diri spesifik di tabel Siswa
+        $dataSiswa = Siswa::where('id_user', $siswaUser->id)->first();
+
+        // 3. Siapkan variabel default agar view kebal dari error (jika siswa belum tes)
+        $eksplorasi = null;
+        $nilaiAkademik = [];
+        $ml_data = null;
+
+        if ($dataSiswa) {
+            // Ambil data eksplorasi (tes AI) terbaru milik siswa ini
+            $eksplorasi = Eksplorasi::where('id_siswa', $dataSiswa->id_siswa)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($eksplorasi) {
+                // Tarik riwayat nilai mata pelajaran
+                $nilaiAkademik = NilaiAkademik::with('mapel')
+                    ->where('id_eksplorasi', $eksplorasi->id_eksplorasi)
+                    ->whereNotNull('nilai')
+                    ->get();
+
+                // Tarik hasil Machine Learning jika statusnya sudah selesai (Finalisasi)
+                if ($eksplorasi->status == 'selesai') {
+                    $gambar = EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
+                    if ($gambar && $gambar->hasil_ocr) {
+                        // Ubah teks JSON dari database menjadi Array PHP
+                        $ml_data = json_decode($gambar->hasil_ocr, true);
+                    }
+                }
+            }
+        }
+
+        // 4. Kirim semua data tersebut ke file guru/siswa_detail.blade.php
+        return view('guru.siswa_detail', compact('siswaUser', 'dataSiswa', 'eksplorasi', 'nilaiAkademik', 'ml_data'));
     }
 
     // Halaman Kelengkapan Profil Guru
@@ -96,5 +134,69 @@ class GuruController extends Controller
         }
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
+    }
+    // ==========================================
+    // FITUR SMART TRIAGE: RUANG KONSULTASI GURU
+    // ==========================================
+
+    public function konsultasi()
+    {
+        $user = Auth::user();
+
+        // Cari identitas ID Guru dari user yang sedang login
+        $dataGuru = Guru::where('id_user', $user->id)->first();
+
+        $konsultasi = [];
+
+        // Jika data guru ditemukan, tarik pengajuan yang id_guru-nya cocok dengan guru ini
+        if ($dataGuru) {
+            $konsultasi = \App\Models\Konsultasi::where('id_guru', $dataGuru->id_guru)
+                ->orderByRaw("FIELD(status, 'Menunggu', 'Dijadwalkan', 'Selesai')")
+                ->orderByRaw("FIELD(tingkat_prioritas, 'Tinggi', 'Menengah', 'Rendah')")
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Injeksi manual data akun siswa untuk ditampilkan di layar
+            foreach ($konsultasi as $k) {
+                $k->data_siswa = Siswa::find($k->id_siswa);
+                if ($k->data_siswa) {
+                    $k->akun_siswa = User::find($k->data_siswa->id_user);
+                }
+            }
+        }
+
+        return view('guru.konsultasi', compact('konsultasi'));
+    }
+
+    public function jadwalkanKonsultasi(Request $request, $id)
+    {
+        $guru = Auth::user();
+        $konsultasi = \App\Models\Konsultasi::findOrFail($id);
+
+        $request->validate(['jadwal_konsultasi' => 'required|date']);
+
+        $dataGuru = Guru::where('id_user', $guru->id)->first();
+
+        $konsultasi->update([
+            'status' => 'Dijadwalkan',
+            'jadwal_konsultasi' => $request->jadwal_konsultasi,
+            'id_guru' => $dataGuru ? $dataGuru->id_guru : null
+        ]);
+
+        return back()->with('success', 'Jadwal konsultasi berhasil dikirim ke siswa!');
+    }
+
+    public function selesaikanKonsultasi(Request $request, $id)
+    {
+        $konsultasi = \App\Models\Konsultasi::findOrFail($id);
+
+        $request->validate(['catatan_guru' => 'required|string']);
+
+        $konsultasi->update([
+            'status' => 'Selesai',
+            'catatan_guru' => $request->catatan_guru
+        ]);
+
+        return back()->with('success', 'Konsultasi selesai! Catatan telah disimpan ke riwayat siswa.');
     }
 }

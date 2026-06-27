@@ -78,9 +78,6 @@ class SiswaController extends Controller
         return view('siswa.input', compact('mapels', 'kemampuans', 'step', 'gambar', 'nilai', 'skor', 'edit_step', 'eksplorasi'));
     }
 
-    // =====================================================================
-    // 2. MEMPROSES PENYIMPANAN DATA PER TAHAP & FINALISASI ML
-    // =====================================================================
     public function storeEksplorasi(Request $request)
     {
         $user = Auth::user();
@@ -184,8 +181,8 @@ class SiswaController extends Controller
                         $gambar->update(['hasil_ocr' => json_encode($hasilJson)]);
 
                         // Update Status Eksplorasi & Siswa
-                        $eksplorasi->update(['status' => 'selesai']); // Gunakan 'selesai' untuk eksplorasi
-                        $siswa->update(['status_data' => 'lengkap']); // Gunakan 'lengkap' sesuai ENUM tabel siswa
+                        $eksplorasi->update(['status' => 'selesai']); 
+                        $siswa->update(['status_data' => 'lengkap']); 
 
                         return redirect()->route('siswa.hasil')->with('success', 'Analisis berhasil! Berikut adalah hasil pemetaan AI LENTERA.');
                     } else {
@@ -202,9 +199,6 @@ class SiswaController extends Controller
         }
     }
 
-    // =====================================================================
-    // 3. MENAMPILKAN HALAMAN HASIL ANALISIS
-    // =====================================================================
     public function hasil()
     {
         $user = Auth::user();
@@ -259,5 +253,110 @@ class SiswaController extends Controller
         }
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
+    }
+    // Halaman Konsultasi Karier (Siswa)
+    public function konsultasi()
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $siswa = \App\Models\Siswa::where('id_user', $user->id)->first();
+
+        $eksplorasi = null;
+        if ($siswa) {
+            $eksplorasi = \App\Models\Eksplorasi::where('id_siswa', $siswa->id_siswa)
+                ->where('status', 'selesai')
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
+
+        $konsultasiAktif = null;
+        $riwayatKonsultasi = [];
+
+        if ($siswa) {
+            $konsultasiAktif = \App\Models\Konsultasi::where('id_siswa', $siswa->id_siswa)
+                ->whereIn('status', ['Menunggu', 'Dijadwalkan'])
+                ->first();
+
+            $riwayatKonsultasi = \App\Models\Konsultasi::where('id_siswa', $siswa->id_siswa)
+                ->where('status', 'Selesai')
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        }
+
+        // --- FITUR BARU: Ambil Daftar Guru BK di Sekolah yang Sama ---
+        $userIdsGuru = \App\Models\User::where('id_role', 2)
+            ->where('id_sekolah', $user->id_sekolah)
+            ->pluck('id');
+
+        $daftarGuru = \App\Models\Guru::whereIn('id_user', $userIdsGuru)->get();
+
+        // Gabungkan nama dari tabel User ke koleksi Guru secara manual
+        foreach ($daftarGuru as $g) {
+            $g->akun = \App\Models\User::find($g->id_user);
+        }
+
+        return view('siswa.konsultasi', compact('eksplorasi', 'konsultasiAktif', 'riwayatKonsultasi', 'siswa', 'daftarGuru'));
+    }
+
+    // Fungsi untuk memproses ajuan konsultasi baru
+    public function storeKonsultasi(\Illuminate\Http\Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $siswa = \App\Models\Siswa::where('id_user', $user->id)->first();
+
+        $request->validate([
+            'id_eksplorasi' => 'required',
+            'id_guru' => 'required', // Wajib memilih Guru BK
+            'topik' => 'required|string',
+            'alasan_siswa' => 'required|string',
+        ]);
+
+        // Cek apakah ada jadwal konsultasi yang masih menggantung
+        $cekAktif = \App\Models\Konsultasi::where('id_siswa', $siswa->id_siswa)
+            ->whereIn('status', ['Menunggu', 'Dijadwalkan'])
+            ->first();
+        if ($cekAktif) {
+            return back()->with('error', 'Anda masih memiliki jadwal konsultasi yang sedang berjalan.');
+        }
+
+        $topScore = 0;
+        $eksplorasi = \App\Models\Eksplorasi::find($request->id_eksplorasi);
+
+        if ($eksplorasi && $eksplorasi->status == 'selesai') {
+            $gambar = \App\Models\EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
+            if ($gambar && $gambar->hasil_ocr) {
+                $ml_data = json_decode($gambar->hasil_ocr, true);
+                $topScore = $ml_data['rekomendasi_jurusan'][0]['match_score'] ?? 0;
+            }
+        }
+
+        $tingkat_prioritas = 'Menengah';
+
+        try {
+            $systemInstruction = "Kamu adalah asisten psikologi untuk Guru Bimbingan Konseling. Tugasmu adalah menganalisis tingkat urgensi keluhan siswa berdasarkan skor kecocokan jurusan dan beban psikologis dari kalimat mereka. Jawab HANYA dengan satu kata mutlak: Tinggi, Menengah, atau Rendah. Dilarang memberikan penjelasan tambahan.";
+
+            $userPrompt = "Skor kecocokan akademik siswa ini adalah {$topScore}%. Keluhan siswa: '{$request->alasan_siswa}'. Tentukan tingkat urgensi penanganannya sekarang.";
+
+            $aiResponse = \Laravel\Ai\agent(instructions: $systemInstruction)->prompt($userPrompt);
+
+            $cleanResponse = ucfirst(strtolower(trim(preg_replace('/[^a-zA-Z]/', '', $aiResponse))));
+
+            if (in_array($cleanResponse, ['Tinggi', 'Menengah', 'Rendah'])) {
+                $tingkat_prioritas = $cleanResponse;
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AI Triage Agent Gagal: ' . $e->getMessage());
+        }
+
+        \App\Models\Konsultasi::create([
+            'id_siswa' => $siswa->id_siswa,
+            'id_eksplorasi' => $request->id_eksplorasi,
+            'id_guru' => $request->id_guru,
+            'topik' => $request->topik,
+            'alasan_siswa' => $request->alasan_siswa,
+            'tingkat_prioritas' => $tingkat_prioritas,
+            'status' => 'Menunggu',
+        ]);
+
+        return back()->with('success', 'Pengajuan konsultasi berhasil dikirim! Silakan tunggu konfirmasi jadwal dari Guru BK yang Anda pilih.');
     }
 }
