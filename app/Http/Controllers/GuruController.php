@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Guru;
+use App\Models\Siswa;
+use App\Models\Eksplorasi;
+use App\Models\EksplorasiGambar;
 
 class GuruController extends Controller
 {
@@ -26,7 +29,15 @@ class GuruController extends Controller
 
         $aktivitas_terkini = [];
 
-        return view('guru.ringkasan', compact('total_siswa', 'nama_sekolah', 'aktivitas_terkini'));
+        // ── HITUNG BIDANG PALING DOMINAN UNTUK CARD RINGKASAN ──
+        $bidang_dominan = 'Belum Ada Data';
+        $rekapBidangSekolah = $this->hitungRekapBidang($user->id_sekolah);
+
+        if (!empty($rekapBidangSekolah)) {
+            $bidang_dominan = array_key_first($rekapBidangSekolah);
+        }
+
+        return view('guru.ringkasan', compact('total_siswa', 'nama_sekolah', 'aktivitas_terkini', 'bidang_dominan'));
     }
 
     // Halaman Daftar Siswa
@@ -64,6 +75,75 @@ class GuruController extends Controller
             ->findOrFail($id);
 
         return view('guru.siswa_detail', compact('siswa'));
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    // HALAMAN BARU: DOMINASI BIDANG
+    // Dibuka dari card "Dominansi Bidang" di Ringkasan. Halaman ini berisi:
+    //   1. Diagram batang horizontal jumlah siswa per bidang rekomendasi.
+    //   2. Di bawahnya, daftar siswa (Nama, Tahun Masuk, Status, Tindakan)
+    //      dengan format & tampilan SAMA seperti halaman Daftar Siswa asli
+    //      (guru.siswa), supaya konsisten dan tetap bisa cari + paginasi.
+    // ═════════════════════════════════════════════════════════════════
+    public function dominasiBidang(Request $request)
+    {
+        $user = Auth::user();
+
+        // 1. DATA UNTUK DIAGRAM BATANG (rekap jumlah siswa per bidang)
+        $rekapBidang = $this->hitungRekapBidang($user->id_sekolah);
+
+        // 2. DATA UNTUK TABEL SISWA (format & query SAMA seperti method siswa())
+        $query = User::with('siswa')
+            ->where('id_sekolah', $user->id_sekolah)
+            ->whereHas('role', function ($q) {
+                $q->where('nama_role', 'siswa');
+            });
+
+        if ($request->has('cari') && $request->cari != '') {
+            $query->where('nama', 'like', '%' . $request->cari . '%');
+        }
+
+        $siswas = $query->paginate(10);
+
+        return view('guru.dominasi', compact('rekapBidang', 'siswas'));
+    }
+
+    // ── FUNGSI BANTUAN: hitung jumlah siswa per bidang rekomendasi ──
+    // Dipakai bersama oleh dashboard() dan dominasiBidang() supaya logikanya
+    // tidak ditulis dua kali. Query manual pakai kolom id_user / id_siswa
+    // (bukan whereHas relasi) agar tidak salah tebak nama foreign key.
+    private function hitungRekapBidang($id_sekolah)
+    {
+        $idUserSiswaSekolah = User::where('id_sekolah', $id_sekolah)
+            ->whereHas('role', function ($q) {
+                $q->where('nama_role', 'siswa');
+            })->pluck('id');
+
+        $idSiswaSekolah = Siswa::whereIn('id_user', $idUserSiswaSekolah)->pluck('id_siswa');
+
+        $eksplorasiSelesai = Eksplorasi::whereIn('id_siswa', $idSiswaSekolah)
+            ->where('status', 'selesai')
+            ->get();
+
+        $rekapBidang = [];
+
+        foreach ($eksplorasiSelesai as $e) {
+            $gambar = EksplorasiGambar::where('id_eksplorasi', $e->id_eksplorasi)->first();
+            if (!$gambar || !$gambar->hasil_ocr) {
+                continue;
+            }
+
+            $hasil = json_decode($gambar->hasil_ocr, true);
+            $bidang = $hasil['rekomendasi_bidang'] ?? $hasil['bidang'] ?? null;
+
+            if ($bidang) {
+                $rekapBidang[$bidang] = ($rekapBidang[$bidang] ?? 0) + 1;
+            }
+        }
+
+        arsort($rekapBidang); // urutkan dari yang paling banyak muncul
+
+        return $rekapBidang;
     }
 
     // Halaman Kelengkapan Profil Guru
