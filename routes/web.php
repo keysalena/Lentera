@@ -59,6 +59,9 @@ Route::middleware('auth')->group(function () {
         // Tambahkan ini untuk melihat detail siswa
         Route::get('/siswa/{id}', [GuruController::class, 'detailSiswa'])->name('siswa.detail');
 
+        // ── ROUTE BARU: Halaman Dominasi Bidang (Daftar Rekomendasi Bidang Siswa) ──
+        Route::get('/dominasi-bidang', [GuruController::class, 'dominasiBidang'])->name('dominasi');
+
         Route::get('/profil', [GuruController::class, 'profil'])->name('profil');
         Route::put('/profil', [GuruController::class, 'updateProfil'])->name('profil.update');
     });

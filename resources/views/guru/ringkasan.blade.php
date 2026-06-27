@@ -30,11 +30,15 @@
             <p style="font-size: 12px; color: var(--ink-30);">Siswa terdaftar di platform</p>
         </div>
 
-        <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
-            <h4 style="font-size: 12px; font-weight: 700; color: var(--amber); text-transform: uppercase; margin-bottom: 8px;">Dominansi Bidang</h4>
-            <div style="font-size: 32px; font-weight: 800; color: var(--amber);">STEM</div>
-            <p style="font-size: 12px; color: var(--ink-30);">Rekomendasi jurusan terbanyak (Simulasi)</p>
-        </div>
+        <!-- ── CARD DOMINANSI BIDANG (SEKARANG CLICKABLE) ──
+             Mengarah ke halaman daftar rekomendasi bidang per siswa (guru.dominasi) -->
+        <a href="{{ route('guru.dominasi') }}" style="text-decoration: none; display: block;">
+            <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25); cursor: pointer; transition: box-shadow 0.2s, transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,0.08)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                <h4 style="font-size: 12px; font-weight: 700; color: var(--amber); text-transform: uppercase; margin-bottom: 8px;">Dominansi Bidang</h4>
+                <div style="font-size: 32px; font-weight: 800; color: var(--amber);">{{ $bidang_dominan ?? 'STEM' }}</div>
+                <p style="font-size: 12px; color: var(--ink-30);">Klik untuk lihat rincian per siswa</p>
+            </div>
+        </a>
 
         <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
             <h4 style="font-size: 12px; font-weight: 700; color: #10B981; text-transform: uppercase; margin-bottom: 8px;">Laporan Diakses</h4>
