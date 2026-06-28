@@ -83,7 +83,27 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+Route::get('/test-email', function () {
+    // 1. Ambil user yang sedang login, atau ambil user pertama dari tabel users
+    $user = \Illuminate\Support\Facades\Auth::user() ?? \App\Models\User::first();
 
+    if (!$user) {
+        return "Gagal: Belum ada data user di dalam database.";
+    }
+
+    try {
+        // 2. Kirim email sederhana dalam bentuk teks murni (tanpa view HTML)
+        \Illuminate\Support\Facades\Mail::raw('Halo ' . $user->nama . ', ini adalah email percobaan langsung dari aplikasi LENTERA. Jika Anda menerima email ini, berarti sistem SMTP berhasil terhubung!', function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Uji Coba Koneksi Email LENTERA');
+        });
+
+        return "SUKSES! Email berhasil dikirim ke: " . $user->email . ". Silakan cek kotak masuk atau folder Spam.";
+    } catch (\Exception $e) {
+        // 3. Tangkap dan tampilkan pesan error jika gagal terkirim
+        return "GAGAL MENGIRIM EMAIL. Error: " . $e->getMessage();
+    }
+});
 // --- PUBLIC ROUTES ---
 Route::get('/', function () {
     return view('home');

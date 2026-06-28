@@ -9,13 +9,25 @@
             <h2 style="font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink);">Daftar Siswa</h2>
             <p style="font-size: 14px; color: var(--ink-60);">Kelola dan pantau seluruh data eksplorasi siswa.</p>
         </div>
-
-        <!-- Form Pencarian -->
         <form action="{{ route('guru.siswa') }}" method="GET" style="display: flex; gap: 12px; align-items: center;">
-            <!-- Kolom Pencarian -->
+
+            <select name="filter_angkatan" onchange="this.form.submit()"
+                style="padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; outline: none; font-size: 14px; background: var(--white); cursor: pointer;">
+                <option value="all" {{ $filterAngkatan == 'all' ? 'selected' : '' }}>Semua Angkatan</option>
+
+                @foreach($angkatans as $angkatan)
+                <option value="{{ $angkatan }}" {{ $filterAngkatan == $angkatan ? 'selected' : '' }}>
+                    Angkatan {{ $angkatan }}
+                </option>
+                @endforeach
+            </select>
+
             <input type="text" name="cari" value="{{ request('cari') }}" placeholder="Cari nama siswa..."
                 style="padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; width: 260px; outline: none; font-size: 14px;">
-            <button type="submit" style="background: var(--amber); color: var(--white); border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer;">Cari</button>
+
+            <button type="submit" style="background: var(--amber); color: var(--white); border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer;">
+                Cari
+            </button>
         </form>
     </div>
 

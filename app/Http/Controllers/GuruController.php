@@ -10,6 +10,9 @@ use App\Models\Siswa;
 use App\Models\Eksplorasi;
 use App\Models\NilaiAkademik;
 use App\Models\EksplorasiGambar;
+use App\Mail\NotifikasiJadwal;
+use Illuminate\Support\Facades\Mail;
+
 
 class GuruController extends Controller
 {
@@ -82,27 +85,46 @@ class GuruController extends Controller
         return view('guru.ringkasan', compact('nama_sekolah', 'kode_lisensi_siswa', 'total_siswa', 'laporan_diakses', 'aktivitas_terkini', 'bidang_dominan'));
     }
 
-    // Halaman Daftar Siswa
-    public function siswa(\Illuminate\Http\Request $request)
+    public function siswa(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
 
-        // Mulai query mengambil siswa di sekolah yang sama
-        $query = \App\Models\User::with('siswa') // Ambil relasi profil siswa
-            ->where('id_sekolah', $user->id_sekolah)
-            ->whereHas('role', function ($q) {
-                $q->where('nama_role', 'siswa');
+        // 1. Tentukan Default Angkatan (Tahun Sekarang dikurangi 2)
+        $tahunSekarang = date('Y'); // Mengambil tahun saat ini (misal: 2026)
+        $defaultAngkatan = $tahunSekarang - 2; // Hasil: 2024
+
+        // Ambil filter angkatan dari request, jika tidak ada, gunakan default
+        $filterAngkatan = $request->input('filter_angkatan', $defaultAngkatan);
+
+        // 2. Ambil daftar angkatan unik untuk mengisi opsi Dropdown
+        $angkatans = \App\Models\Siswa::whereHas('user', function ($q) use ($user) {
+            $q->where('id_sekolah', $user->id_sekolah);
+        })
+            ->select('angkatan')
+            ->whereNotNull('angkatan')
+            ->distinct()
+            ->orderBy('angkatan', 'desc')
+            ->pluck('angkatan');
+
+        // 3. Query Data Siswa
+        $query = User::where('id_sekolah', $user->id_sekolah)
+            ->where('id_role', 3);
+
+        // 4. Terapkan Filter Angkatan (jika bukan 'all')
+        if ($filterAngkatan != 'all') {
+            $query->whereHas('siswa', function ($q) use ($filterAngkatan) {
+                $q->where('angkatan', $filterAngkatan);
             });
+        }
 
-        // Fitur Pencarian
+        // 5. Terapkan Filter Pencarian Nama
         if ($request->has('cari') && $request->cari != '') {
             $query->where('nama', 'like', '%' . $request->cari . '%');
         }
 
-        // Ambil data dengan paginasi (10 data per halaman)
         $siswas = $query->paginate(10);
 
-        return view('guru.siswa', compact('siswas'));
+        return view('guru.siswa', compact('siswas', 'angkatans', 'filterAngkatan'));
     }
 
     // Halaman Detail Profil Siswa
@@ -298,17 +320,34 @@ class GuruController extends Controller
         $guru = Auth::user();
         $konsultasi = \App\Models\Konsultasi::findOrFail($id);
 
-        $request->validate(['jadwal_konsultasi' => 'required|date']);
+        // Validasi input tanggal/waktu
+        $request->validate([
+            'jadwal_konsultasi' => 'required|date'
+        ]);
 
         $dataGuru = Guru::where('id_user', $guru->id)->first();
 
+        // 1. Simpan perubahan status dan jadwal ke database
         $konsultasi->update([
             'status' => 'Dijadwalkan',
             'jadwal_konsultasi' => $request->jadwal_konsultasi,
             'id_guru' => $dataGuru ? $dataGuru->id_guru : null
         ]);
 
-        return back()->with('success', 'Jadwal konsultasi berhasil dikirim ke siswa!');
+        // 2. Cari Email Siswa dengan Alur Relasi yang Benar
+        // Konsultasi -> id_siswa -> Tabel Siswa -> id_user -> Tabel User -> email
+        $dataSiswa = \App\Models\Siswa::find($konsultasi->id_siswa);
+
+        if ($dataSiswa) {
+            $akunSiswa = User::find($dataSiswa->id_user);
+
+            if ($akunSiswa && $akunSiswa->email) {
+                // 3. Eksekusi pengiriman Email & Kalender
+                Mail::to($akunSiswa->email)->send(new NotifikasiJadwal($akunSiswa, $konsultasi));
+            }
+        }
+
+        return back()->with('success', 'Jadwal konsultasi berhasil ditetapkan dan notifikasi kalender telah dikirim ke email siswa!');
     }
 
     public function selesaikanKonsultasi(Request $request, $id)

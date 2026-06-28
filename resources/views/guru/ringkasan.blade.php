@@ -112,14 +112,6 @@
                 Pantau hasil analisis eksplorasi karier siswa <span style="font-weight: 700; color: var(--amber);">{{ $nama_sekolah }}</span>.
             </p>
         </div>
-
-        <div style="display: flex; gap: 12px;">
-            <select name="filter_tahun" style="padding: 10px 16px; border: 1px solid var(--ink-30); border-radius: 10px; font-size: 13px; background: var(--white); color: var(--ink); outline: none; cursor: pointer; min-width: 160px;">
-                <option value="all">Semua Angkatan</option>
-                <option value="2026">Masuk 2026</option>
-                <option value="2025">Masuk 2025</option>
-            </select>
-        </div>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
