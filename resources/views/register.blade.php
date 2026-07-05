@@ -83,7 +83,7 @@
 
                 <div id="lisensi_guru_container" style="display: none; background: rgba(201, 123, 42, 0.05); border: 1px dashed var(--amber); padding: 16px; border-radius: 10px;">
                     <label for="kode_lisensi" style="display: block; font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 6px;">Kode Lisensi Staf Pendidik</label>
-                    <input type="text" id="kode_lisensi" name="kode_lisensi" value="{{ old('kode_lisensi') }}" placeholder="Contoh: LENTERA-GURU-XXXX"
+                    <input type="text" id="kode_lisensi" name="kode_lisensi" value="{{ old('kode_lisensi') }}" placeholder="Contoh: G-XXX-XXX"
                         style="width: 100%; padding: 12px 16px; border: 1px solid rgba(201, 123, 42, 0.3); border-radius: 8px; font-size: 14px; outline: none; background: var(--white);">
                     <p style="font-size: 11px; color: var(--ink-60); margin-top: 6px;">Diperlukan untuk memverifikasi Anda sebagai staf BK resmi.</p>
                 </div>

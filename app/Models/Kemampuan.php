@@ -13,9 +13,7 @@ class Kemampuan extends Model
 
     protected $primaryKey = 'id_kemampuan';
 
-    protected $fillable = [
-        'nama_kemampuan',
-    ];
+    protected $fillable = ['kode_item', 'nama_kemampuan'];
 
     public function skorKemampuan()
     {

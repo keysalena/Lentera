@@ -21,11 +21,7 @@
         <aside id="main-sidebar" class="sidebar">
             <div class="sidebar-brand" style="justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div class="logo-mark">
-                        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 2L12.5 7.5L18 8.5L14 12.5L15 18L10 15.5L5 18L6 12.5L2 8.5L7.5 7.5L10 2Z" fill="white" />
-                        </svg>
-                    </div>
+                    <img src="{{ asset('img/logo.png') }}" alt="Hero Image" class="logo-nav">
                     <span class="logo-name">LENTERA</span>
                 </div>
                 <button id="close-sidebar-btn" class="close-sidebar-btn">
@@ -83,7 +79,7 @@
                         <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                         </svg>
-                        <span>Data Kemampuan</span>
+                        <span>Data Minat</span>
                     </a>
                 </li>
             </ul>

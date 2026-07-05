@@ -14,6 +14,7 @@ use App\Models\MataPelajaran;
 use App\Models\Kemampuan;
 use App\Models\Sekolah;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 
 class SiswaController extends Controller
 {
@@ -98,7 +99,6 @@ class SiswaController extends Controller
                     mkdir($destinationPath, 0755, true);
                 }
 
-                // Native move() untuk menghindari error Path Must Not Be Empty di XAMPP
                 $file->move($destinationPath, $nama_file);
                 $path = 'uploads/eksplorasi/' . $nama_file;
 
@@ -157,22 +157,28 @@ class SiswaController extends Controller
                     $akademikData[$key] = (float) $n->nilai;
                 }
 
-                // 3. Format Data Kemampuan (JSON Array Key huruf kecil)
+                // 3. Format Data Minat RIASEC (Sesuai dokumentasi ML v3.1 -> Format A)
                 $skorKemampuan = SkorKemampuan::with('kemampuan')->where('id_eksplorasi', $eksplorasi->id_eksplorasi)->get();
-                $talentData = [];
+                $minatData = [];
                 foreach ($skorKemampuan as $s) {
-                    $key = strtolower(str_replace(' ', '_', $s->kemampuan->nama_kemampuan));
-                    $talentData[$key] = (int) $s->skor;
+                    // Ambil kode_item dari relasi tabel kemampuan (contoh: q_R1, q_R2)
+                    $key = $s->kemampuan->kode_item;
+
+                    // Pastikan key tidak kosong sebelum dimasukkan ke array
+                    if (!empty($key)) {
+                        $minatData[$key] = (int) $s->skor;
+                    }
                 }
 
                 // 4. Request Multipart ke FastAPI
                 try {
                     $response = Http::timeout(60) // Tunggu maksimal 60 detik untuk ML memproses
                         ->attach('file', file_get_contents($imagePath), 'tulisan_siswa.jpg')
-                        // ->post('https://gpf0gt5s-8001.asse.devtunnels.ms/predict', [
+                        // ->post('https://gpf0gt5s-8000.asse.devtunnels.ms/predict', [
                         ->post('http://localhost:8000/predict', [
-                            'akademik' => json_encode($akademikData),
-                            'talent'   => json_encode($talentData),
+                            // Gunakan JSON_FORCE_OBJECT agar formatnya selalu berupa Object {...}
+                            'akademik' => json_encode($akademikData, JSON_FORCE_OBJECT),
+                            'minat'    => json_encode($minatData, JSON_FORCE_OBJECT),
                         ]);
 
                     if ($response->successful()) {
@@ -269,6 +275,27 @@ class SiswaController extends Controller
         }
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
+    }
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        // Cek apakah password lama yang dimasukkan sesuai dengan yang ada di database
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Kata sandi saat ini tidak cocok dengan catatan kami.']);
+        }
+
+        // Update ke password baru
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return back()->with('success', 'Kata sandi berhasil diperbarui!');
     }
     // Halaman Konsultasi Karier (Siswa)
     public function konsultasi()
@@ -374,5 +401,10 @@ class SiswaController extends Controller
         ]);
 
         return back()->with('success', 'Pengajuan konsultasi berhasil dikirim! Silakan tunggu konfirmasi jadwal dari Guru BK yang Anda pilih.');
+    }
+    public function panduan()
+    {
+        // Mengarahkan ke file view resources/views/siswa/panduan.blade.php
+        return view('siswa.panduan');
     }
 }

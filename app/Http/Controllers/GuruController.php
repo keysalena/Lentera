@@ -12,6 +12,7 @@ use App\Models\NilaiAkademik;
 use App\Models\EksplorasiGambar;
 use App\Mail\NotifikasiJadwal;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 
 
 class GuruController extends Controller
@@ -23,9 +24,6 @@ class GuruController extends Controller
         $sekolah = \App\Models\Sekolah::find($guru->id_sekolah);
         $nama_sekolah = $sekolah ? $sekolah->nama_sekolah : 'Sekolah LENTERA';
         $kode_lisensi_siswa = $sekolah ? $sekolah->kode_lisensi_siswa : 'KODE-BELUM-DISET';
-        // 1. Ambil Nama Sekolah
-        $sekolah = \App\Models\Sekolah::find($guru->id_sekolah);
-        $nama_sekolah = $sekolah ? $sekolah->nama_sekolah : 'Sekolah LENTERA';
 
         // 2. Hitung Total Siswa di sekolah yang sama
         $userIdsSiswa = \App\Models\User::where('id_role', 3)
@@ -35,7 +33,7 @@ class GuruController extends Controller
         $total_siswa = $userIdsSiswa->count();
         $siswaIds = \App\Models\Siswa::whereIn('id_user', $userIdsSiswa)->pluck('id_siswa');
 
-        // 3. Hitung Laporan yang sudah selesai (diakses)
+        // 3. Hitung Laporan yang sudah selesai
         $laporan_diakses = \App\Models\Eksplorasi::whereIn('id_siswa', $siswaIds)
             ->where('status', 'selesai')
             ->count();
@@ -46,7 +44,6 @@ class GuruController extends Controller
             ->take(5)
             ->get();
 
-        // Injeksi manual data akun siswa untuk mempermudah view
         foreach ($aktivitas_terkini as $aktivitas) {
             $aktivitas->data_siswa = \App\Models\Siswa::find($aktivitas->id_siswa);
             if ($aktivitas->data_siswa) {
@@ -54,35 +51,37 @@ class GuruController extends Controller
             }
         }
 
-        // 5. Dominansi Bidang (Membaca langsung dari hasil Machine Learning)
+        // 5. Dominansi Bidang (Mengambil rumpun_ilmu dari ML)
         $bidang_dominan = 'Belum Ada Data';
 
-        // A. Ambil ID Eksplorasi yang sudah selesai untuk siswa di sekolah ini
         $eksplorasiSelesaiIds = \App\Models\Eksplorasi::whereIn('id_siswa', $siswaIds)
             ->where('status', 'selesai')
             ->pluck('id_eksplorasi');
 
-        // B. Ambil JSON hasil_ocr dari tabel gambar
         $hasilML = \App\Models\EksplorasiGambar::whereIn('id_eksplorasi', $eksplorasiSelesaiIds)
             ->whereNotNull('hasil_ocr')
             ->pluck('hasil_ocr');
 
-        // C. Ekstrak rekomendasi jurusan pertama dari setiap JSON siswa
-        $jurusanList = collect($hasilML)->map(function ($json) {
+        // C. Ekstrak 'rumpun_ilmu' dari analisis_akademik hasil ML
+        $rumpunList = collect($hasilML)->map(function ($json) {
             $data = json_decode($json, true);
-            // Ambil nama jurusan yang ada di ranking 1 (index 0)
-            return $data['rekomendasi_jurusan'][0]['jurusan'] ?? null;
-        })->filter(); // filter() berguna untuk membuang hasil yang null/kosong
+            // Ambil dari path: analisis_akademik -> rumpun_ilmu
+            return $data['analisis_akademik']['rumpun_ilmu'] ?? null;
+        })->filter();
 
-        // D. Cari jurusan yang paling sering muncul (Modus)
-        if ($jurusanList->isNotEmpty()) {
-            // Fungsi mode() bawaan Laravel otomatis mencari data terbanyak
-            $jurusan_terbanyak = $jurusanList->mode()[0];
-
-            // Kita gunakan nama jurusan tersebut sebagai Bidang Dominan
-            $bidang_dominan = $jurusan_terbanyak;
+        // D. Cari rumpun yang paling sering muncul (Modus)
+        if ($rumpunList->isNotEmpty()) {
+            $bidang_dominan = $rumpunList->mode()[0];
         }
-        return view('guru.ringkasan', compact('nama_sekolah', 'kode_lisensi_siswa', 'total_siswa', 'laporan_diakses', 'aktivitas_terkini', 'bidang_dominan'));
+
+        return view('guru.ringkasan', compact(
+            'nama_sekolah',
+            'kode_lisensi_siswa',
+            'total_siswa',
+            'laporan_diakses',
+            'aktivitas_terkini',
+            'bidang_dominan'
+        ));
     }
 
     public function siswa(Request $request)
@@ -132,125 +131,114 @@ class GuruController extends Controller
     {
         $guru = Auth::user();
 
-        // 1. Ambil data akun User (Pastikan dia siswa dan satu sekolah dengan guru)
         $siswaUser = User::where('id_role', 3)
             ->where('id_sekolah', $guru->id_sekolah)
             ->findOrFail($id);
 
-        // 2. Cari data diri spesifik di tabel Siswa
         $dataSiswa = Siswa::where('id_user', $siswaUser->id)->first();
 
-        // 3. Siapkan variabel default agar view kebal dari error (jika siswa belum tes)
         $eksplorasi = null;
-        $nilaiAkademik = [];
+        $nilaiAkademik = collect();
         $ml_data = null;
 
         if ($dataSiswa) {
-            // Ambil data eksplorasi (tes AI) terbaru milik siswa ini
-            $eksplorasi = Eksplorasi::where('id_siswa', $dataSiswa->id_siswa)
-                ->orderBy('created_at', 'desc')
+
+            $eksplorasi = Eksplorasi::where(
+                'id_siswa',
+                $dataSiswa->id_siswa
+            )
+                ->latest()
                 ->first();
 
             if ($eksplorasi) {
-                // Tarik riwayat nilai mata pelajaran
+
                 $nilaiAkademik = NilaiAkademik::with('mapel')
                     ->where('id_eksplorasi', $eksplorasi->id_eksplorasi)
                     ->whereNotNull('nilai')
                     ->get();
 
-                // Tarik hasil Machine Learning jika statusnya sudah selesai (Finalisasi)
-                if ($eksplorasi->status == 'selesai') {
-                    $gambar = EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
-                    if ($gambar && $gambar->hasil_ocr) {
-                        // Ubah teks JSON dari database menjadi Array PHP
-                        $ml_data = json_decode($gambar->hasil_ocr, true);
+                if ($eksplorasi->status === 'selesai') {
+
+                    $gambar = EksplorasiGambar::where(
+                        'id_eksplorasi',
+                        $eksplorasi->id_eksplorasi
+                    )
+                        ->latest()
+                        ->first();
+
+                    if ($gambar && !empty($gambar->hasil_ocr)) {
+
+                        $decoded = json_decode($gambar->hasil_ocr, true);
+
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $ml_data = $decoded;
+                        }
                     }
                 }
             }
         }
 
-        // 4. Kirim semua data tersebut ke file guru/siswa_detail.blade.php
-        return view('guru.siswa_detail', compact('siswaUser', 'dataSiswa', 'eksplorasi', 'nilaiAkademik', 'ml_data'));
+        return view('guru.siswa_detail', compact(
+            'siswaUser',
+            'dataSiswa',
+            'eksplorasi',
+            'nilaiAkademik',
+            'ml_data'
+        ));
     }
     public function dominasiBidang(Request $request)
     {
-        $user = Auth::user();
+        $user = \Illuminate\Support\Facades\Auth::user();
 
-        // 1. DATA UNTUK DIAGRAM BATANG (rekap jumlah siswa per bidang)
-        $rekapBidang = $this->hitungRekapBidang($user->id_sekolah);
+        // 1. Ambil semua siswa di sekolah guru tersebut
+        $query = \App\Models\User::where('id_sekolah', $user->id_sekolah)
+            ->where('id_role', 3); // Role Siswa
 
-        // 2. DATA UNTUK TABEL SISWA (Lebih aman dari error relation)
-        $query = User::where('id_sekolah', $user->id_sekolah)
-            ->where('id_role', 3); // 3 = ID Role Siswa
-
+        // Fitur Pencarian
         if ($request->has('cari') && $request->cari != '') {
             $query->where('nama', 'like', '%' . $request->cari . '%');
         }
 
+        // Ambil data siswa dengan relasi yang dibutuhkan
         $siswas = $query->paginate(10);
 
-        // 3. Ekstrak data bidang untuk masing-masing siswa yang tampil di halaman ini
-        foreach ($siswas as $siswaUser) {
-            $dataSiswa = Siswa::where('id_user', $siswaUser->id)->first();
-            $siswaUser->siswa_data = $dataSiswa; // Tempelkan data detail siswa
-            $siswaUser->bidang_ai = '-'; // Default jika belum ada
+        // 2. Olah data untuk tabel (menambahkan bidang_ai secara dinamis)
+        foreach ($siswas as $siswa) {
+            $data_siswa = \App\Models\Siswa::where('id_user', $siswa->id)->first();
+            if ($data_siswa) {
+                $eksplorasi = \App\Models\Eksplorasi::where('id_siswa', $data_siswa->id_siswa)
+                    ->where('status', 'selesai')->first();
 
-            if ($dataSiswa) {
-                $eksplorasi = Eksplorasi::where('id_siswa', $dataSiswa->id_siswa)
-                    ->where('status', 'selesai')
-                    ->orderBy('created_at', 'desc')
-                    ->first();
                 if ($eksplorasi) {
-                    $gambar = EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
-                    if ($gambar && $gambar->hasil_ocr) {
-                        $ml_data = json_decode($gambar->hasil_ocr, true);
-                        // Ambil kategori bidang dari rank 1 atau dari field karakter (sesuaikan JSON ML Anda)
-                        $siswaUser->bidang_ai = $ml_data['karakter']['tipe'] ??
-                            ($ml_data['rekomendasi_jurusan'][0]['jurusan'] ?? 'Tidak Diketahui');
-                    }
+                    $gambar = \App\Models\EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
+                    $ml_data = $gambar ? json_decode($gambar->hasil_ocr, true) : null;
+                    $siswa->bidang_ai = $ml_data['analisis_akademik']['rumpun_ilmu'] ?? 'Tidak Terdeteksi';
+                } else {
+                    $siswa->bidang_ai = '-';
                 }
             }
         }
 
-        return view('guru.dominasi', compact('rekapBidang', 'siswas'));
-    }
+        // 3. Olah data untuk Diagram Batang (Rekap per sekolah)
+        $siswaIds = \App\Models\Siswa::whereIn('id_user', function ($q) use ($user) {
+            $q->select('id')->from('users')->where('id_sekolah', $user->id_sekolah);
+        })->pluck('id_siswa');
 
-    private function hitungRekapBidang($id_sekolah)
-    {
-        // Gunakan pencarian role langsung lewat id_role
-        $idUserSiswaSekolah = User::where('id_sekolah', $id_sekolah)
-            ->where('id_role', 3)
-            ->pluck('id');
-
-        $idSiswaSekolah = Siswa::whereIn('id_user', $idUserSiswaSekolah)->pluck('id_siswa');
-
-        $eksplorasiSelesai = Eksplorasi::whereIn('id_siswa', $idSiswaSekolah)
-            ->where('status', 'selesai')
-            ->get();
+        $hasilML = \App\Models\EksplorasiGambar::whereIn(
+            'id_eksplorasi',
+            \App\Models\Eksplorasi::whereIn('id_siswa', $siswaIds)->pluck('id_eksplorasi')
+        )->whereNotNull('hasil_ocr')->pluck('hasil_ocr');
 
         $rekapBidang = [];
-
-        foreach ($eksplorasiSelesai as $e) {
-            $gambar = EksplorasiGambar::where('id_eksplorasi', $e->id_eksplorasi)->first();
-            if (!$gambar || !$gambar->hasil_ocr) {
-                continue;
-            }
-
-            $hasil = json_decode($gambar->hasil_ocr, true);
-
-            // Mencari bidang dari struktur JSON yang sudah disepakati (karakter tipe atau jurusan teratas)
-            $bidang = $hasil['karakter']['tipe'] ??
-                ($hasil['rekomendasi_jurusan'][0]['jurusan'] ?? null);
-
-            if ($bidang) {
-                // Untuk mencegah nama jurusan kepanjangan, kita bisa mengkategorikannya
-                $rekapBidang[$bidang] = ($rekapBidang[$bidang] ?? 0) + 1;
-            }
+        foreach ($hasilML as $json) {
+            $data = json_decode($json, true);
+            $rumpun = $data['analisis_akademik']['rumpun_ilmu'] ?? 'Lainnya';
+            $rekapBidang[$rumpun] = ($rekapBidang[$rumpun] ?? 0) + 1;
         }
 
-        arsort($rekapBidang); // urutkan dari yang paling banyak muncul
-        return $rekapBidang;
+        return view('guru.dominasi', compact('siswas', 'rekapBidang'));
     }
+
     // Halaman Kelengkapan Profil Guru
     public function profil()
     {
@@ -281,6 +269,27 @@ class GuruController extends Controller
         }
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
+    }
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        // Cek apakah password lama yang dimasukkan sesuai dengan yang ada di database
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Kata sandi saat ini tidak cocok dengan catatan kami.']);
+        }
+
+        // Update ke password baru
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return back()->with('success', 'Kata sandi berhasil diperbarui!');
     }
     // ==========================================
     // FITUR SMART TRIAGE: RUANG KONSULTASI GURU
@@ -362,5 +371,10 @@ class GuruController extends Controller
         ]);
 
         return back()->with('success', 'Konsultasi selesai! Catatan telah disimpan ke riwayat siswa.');
+    }
+    public function panduan()
+    {
+        // Mengarahkan ke file view resources/views/siswa/panduan.blade.php
+        return view('guru.panduan');
     }
 }

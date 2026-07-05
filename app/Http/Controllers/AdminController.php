@@ -13,21 +13,33 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\MataPelajaran;
 use App\Models\Kemampuan;
+use App\Models\Eksplorasi;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        $sekolahs = Sekolah::with(['users' => function ($query) {
-            $query->with('role');
-        }])->get();
-
-        // Statistik Global
         $total_sekolah = Sekolah::count();
-        $total_guru = User::whereHas('role', fn($q) => $q->where('nama_role', 'guru'))->count();
-        $total_siswa = User::whereHas('role', fn($q) => $q->where('nama_role', 'siswa'))->count();
+        $total_guru = User::whereHas('role', function ($q) {
+            $q->where('nama_role', 'guru');
+        })->count();
 
-        return view('admin.ringkasan', compact('sekolahs', 'total_sekolah', 'total_guru', 'total_siswa'));
+        $total_siswa = User::whereHas('role', function ($q) {
+            $q->where('nama_role', 'siswa');
+        })->count();
+
+        // Asumsi: 'selesai' adalah status jika analisis sudah finalisasi
+        $total_analisis = Eksplorasi::where('status', 'selesai')->count();
+
+        $sekolahs = Sekolah::with('users.role')->get();
+
+        return view('admin.ringkasan', compact(
+            'total_sekolah',
+            'total_guru',
+            'total_siswa',
+            'total_analisis',
+            'sekolahs'
+        ));
     }
 
     public function siswa(\Illuminate\Http\Request $request)
@@ -399,30 +411,39 @@ class AdminController extends Controller
     {
         $query = Kemampuan::query();
 
-        // Fitur Pencarian
+        // Fitur Pencarian (bisa cari berdasarkan kode_item atau nama_kemampuan)
         if ($request->has('cari') && $request->cari != '') {
-            $query->where('nama_kemampuan', 'like', '%' . $request->cari . '%');
+            $query->where('nama_kemampuan', 'like', '%' . $request->cari . '%')
+                ->orWhere('kode_item', 'like', '%' . $request->cari . '%');
         }
 
-        $kemampuans = $query->orderBy('nama_kemampuan', 'asc')->paginate(10);
+        // Diurutkan berdasarkan kode_item agar tampilan lebih terstruktur
+        $kemampuans = $query->orderBy('kode_item', 'asc')->paginate(10);
 
         return view('admin.kemampuan', compact('kemampuans'));
     }
 
     // Fungsi Tambah Indikator Kemampuan
+    // Fungsi Tambah Indikator Kemampuan
     public function storeKemampuan(\Illuminate\Http\Request $request)
     {
+        // Pastikan kode yang masuk dari input tidak ganda 'q_'
+        $cleanKode = str_replace('q_', '', $request->kode_item);
+        $fKode = "q_" . $cleanKode;
+
         $request->validate([
-            'nama_kemampuan' => 'required|string|max:100|unique:kemampuan,nama_kemampuan',
+            'kode_item' => 'required|string|max:10|unique:kemampuan,kode_item',
+            'nama_kemampuan' => 'required|string',
         ], [
-            'nama_kemampuan.unique' => 'Indikator kemampuan ini sudah terdaftar di database.'
+            'kode_item.unique' => 'Kode item ini sudah terdaftar.',
         ]);
 
         Kemampuan::create([
+            'kode_item' => $fKode,
             'nama_kemampuan' => $request->nama_kemampuan,
         ]);
 
-        return redirect()->back()->with('success', 'Indikator kemampuan baru berhasil ditambahkan!');
+        return redirect()->back()->with('success', 'Berhasil ditambahkan!');
     }
 
     // Fungsi Update Indikator Kemampuan
@@ -430,15 +451,21 @@ class AdminController extends Controller
     {
         $kemampuan = Kemampuan::findOrFail($id);
 
+        $cleanKode = str_replace('q_', '', $request->kode_item);
+        $fKode = "q_" . $cleanKode;
+
         $request->validate([
-            'nama_kemampuan' => 'required|string|max:100|unique:kemampuan,nama_kemampuan,' . $id . ',id_kemampuan',
+            // Validasi unique mengecualikan ID saat ini
+            'kode_item' => 'required|string|max:10|unique:kemampuan,kode_item,' . $id . ',id_kemampuan',
+            'nama_kemampuan' => 'required|string',
         ]);
 
         $kemampuan->update([
+            'kode_item' => $fKode,
             'nama_kemampuan' => $request->nama_kemampuan,
         ]);
 
-        return redirect()->back()->with('success', 'Indikator kemampuan berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Berhasil diperbarui!');
     }
 
     // Fungsi Hapus Indikator Kemampuan

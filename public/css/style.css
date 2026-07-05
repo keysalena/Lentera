@@ -305,7 +305,15 @@ nav {
 }
 
 .hero-main-img {
-    width: 260px; /* Mengunci maksimal lebar agar gambar tidak raksasa */
+    width: 300px; /* Mengunci maksimal lebar agar gambar tidak raksasa */
+    height: auto;
+    object-fit: contain;
+    position: relative;
+    z-index: 10;
+    filter: drop-shadow(0 12px 32px rgba(201, 123, 42, 0.25)); /* Efek bayangan estetik */
+}
+.logo-nav {
+    width: 50px; /* Mengunci maksimal lebar agar gambar tidak raksasa */
     height: auto;
     object-fit: contain;
     position: relative;

@@ -14,7 +14,7 @@
             <h1>Pilih Jurusan yang <em>Benar-benar</em> Cocok Untukmu</h1>
             <p>LENTERA menganalisis rekam jejak akademik, skor minat bakat, dan mengekstraksi karakter dari pola tulisan tanganmu — lalu memberikan rekomendasi jurusan kuliah berbasis Machine Learning.</p>
             <div class="hero-actions">
-                <a href="/masuk" class="btn-cta">
+                <a href="{{ route('siswa.dashboard') }}" class="btn-cta">
                     Mulai Analisis
                     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
@@ -26,11 +26,9 @@
 
         <div class="hero-right">
             <div class="hero-image-wrapper">
-                <div class="pulse-ring ring-1"></div>
-                <div class="pulse-ring ring-2"></div>
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15 8.5L22 9.5L17 14.5L18.5 21.5L12 18L5.5 21.5L7 14.5L2 9.5L9 8.5L12 2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="hero-main-img"/>
-                </svg>
+                <!-- <div class="pulse-ring ring-1"></div>
+                <div class="pulse-ring ring-2"></div> -->
+                <img src="{{ asset('img/logo_L.png') }}" alt="Hero Image" class="hero-main-img">
             </div>
         </div>
     </div>
@@ -129,17 +127,17 @@
     </div>
 </section>
 
-<div class="quote-section">
+<!-- <div class="quote-section">
     <div class="quote-inner">
         <div class="quote-mark">"</div>
         <p class="quote-text">Awalnya saya kebingungan memetakan arah masa depan. Setelah mengisi data akademik dan mengunggah tulisan tangan, sistem secara akurat memetakan potensi logika analitis saya ke bidang Pendidikan Teknik Informatika.</p>
         <div class="quote-author">Keysa Lena Misdona — Mahasiswi Pendidikan Teknik Informatika, Offering B</div>
     </div>
-</div>
-
+</div> -->
+<hr>
 <div class="cta-strip">
     <h2>Sudah siap menemukan<br>jurusan yang <em>benar-benar</em> sesuai?</h2>
-    <a href="/masuk" class="btn-cta-large">
+    <a href="{{ route('siswa.dashboard') }}" class="btn-cta-large">
         Coba LENTERA
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />

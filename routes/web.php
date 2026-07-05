@@ -14,6 +14,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'authenticate']);
     Route::get('/daftar', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/daftar', [AuthController::class, 'register']);
+    Route::get('/lupa-sandi', [AuthController::class, 'showResetPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetForgetPassword'])->name('password.update');
 });
 
 
@@ -61,9 +65,12 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profil', [GuruController::class, 'profil'])->name('profil');
         Route::put('/profil', [GuruController::class, 'updateProfil'])->name('profil.update');
+        Route::put('/profil/password', [GuruController::class, 'updatePassword'])->name('password.update');
         // ── ROUTE BARU: Halaman Dominasi Bidang (Daftar Rekomendasi Bidang Siswa) ──
         Route::get('/dominasi-bidang', [GuruController::class, 'dominasiBidang'])->name('dominasi');
         // Route Ruang Konsultasi (Smart Triage)
+        Route::get('/panduan', [GuruController::class, 'panduan'])->name('panduan');
+
         Route::get('/konsultasi', [GuruController::class, 'konsultasi'])->name('konsultasi');
         Route::put('/konsultasi/{id}/jadwal', [GuruController::class, 'jadwalkanKonsultasi'])->name('konsultasi.jadwal');
         Route::put('/konsultasi/{id}/selesai', [GuruController::class, 'selesaikanKonsultasi'])->name('konsultasi.selesai');
@@ -78,6 +85,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/konsultasi', [SiswaController::class, 'konsultasi'])->name('konsultasi');
         Route::post('/konsultasi', [SiswaController::class, 'storeKonsultasi'])->name('konsultasi.store');
         // Route untuk Profil Siswa
+        Route::get('/panduan', [SiswaController::class, 'panduan'])->name('panduan');
+        Route::put('/profil/password', [SiswaController::class, 'updatePassword'])->name('password.update');
         Route::get('/profil', [SiswaController::class, 'profil'])->name('profil');
         Route::put('/profil', [SiswaController::class, 'updateProfil'])->name('profil.update');
     });

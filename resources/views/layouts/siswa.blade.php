@@ -19,11 +19,7 @@
         <aside id="main-sidebar" class="sidebar">
             <div class="sidebar-brand" style="justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div class="logo-mark">
-                        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 2L12.5 7.5L18 8.5L14 12.5L15 18L10 15.5L5 18L6 12.5L2 8.5L7.5 7.5L10 2Z" fill="white" />
-                        </svg>
-                    </div>
+                    <img src="{{ asset('img/logo.png') }}" alt="Hero Image" class="logo-nav">
                     <span class="logo-name">LENTERA</span>
                 </div>
                 <button id="close-sidebar-btn" class="close-sidebar-btn">
@@ -90,6 +86,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span>Profil Saya</span>
+                    </a>
+                </li>
+                <li class="nav-item" style="margin-top: 24px;">
+                    <a href="{{ route('siswa.panduan') }}" class="nav-link {{ request()->routeIs('siswa.panduan') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-book-open"></i>
+                        <p>Panduan Siswa</p>
                     </a>
                 </li>
             </ul>

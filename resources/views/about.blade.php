@@ -18,13 +18,12 @@
         </div>
         <div class="hero-right">
             <div class="hero-image-wrapper" style="width: 280px; height: 280px;">
-                <div class="pulse-ring ring-1" style="width: 280px; height: 280px;"></div>
-                <div class="pulse-ring ring-2" style="width: 240px; height: 240px;"></div>
-                <div class="bg-surface-container-lowest rounded-full flex items-center justify-center" style="width: 200px; height: 200px; background: var(--cream); position: relative; z-index: 10;">
-                    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </div>
+                <!-- <div class="pulse-ring ring-1" style="width: 280px; height: 280px;"></div>
+                <div class="pulse-ring ring-2" style="width: 240px; height: 240px;"></div> -->
+                <!-- <div class="bg-surface-container-lowest rounded-full flex items-center justify-center" style="width: 200px; height: 200px; background: var(--cream); position: relative; z-index: 10;"> -->
+                    <img src="{{ asset('img/logo_L.png') }}" alt="Hero Image" class="hero-main-img">
+
+                <!-- </div> -->
             </div>
         </div>
     </div>
@@ -98,7 +97,7 @@
 <div style="background: var(--amber-bg);">
     <div class="cta-strip" style="padding: 80px 48px;">
         <h2>Mari mulai petualangan eksplorasi<br>potensi akademikmu sekarang.</h2>
-        <a href="/masuk" class="btn-cta-large">
+        <a href="{{ route('siswa.dashboard') }}" class="btn-cta-large">
             Mulai Eksplorasi
             <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />

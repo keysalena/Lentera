@@ -44,7 +44,7 @@
         <table style="width: 100%; border-collapse: collapse;">
             <thead style="background: var(--cream);">
                 <tr>
-                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60); width: 80px;">ID</th>
+                    <!-- <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60); width: 80px;">ID</th> -->
                     <th style="padding: 16px 24px; text-align: left; font-size: 12px; color: var(--ink-60);">NAMA MATA PELAJARAN</th>
                     <th style="padding: 16px 24px; text-align: right; font-size: 12px; color: var(--ink-60);">TINDAKAN</th>
                 </tr>
@@ -52,9 +52,9 @@
             <tbody>
                 @forelse($mapels as $mapel)
                 <tr style="border-top: 1px solid var(--cream);">
-                    <td style="padding: 20px 24px; font-size: 14px; color: var(--ink-60); font-weight: 600;">
+                    <!-- <td style="padding: 20px 24px; font-size: 14px; color: var(--ink-60); font-weight: 600;">
                         #{{ $mapel->id_mapel }}
-                    </td>
+                    </td> -->
                     <td style="padding: 20px 24px;">
                         <div style="font-weight: 700; color: var(--ink); font-size: 15px;">{{ $mapel->nama_mapel }}</div>
                     </td>

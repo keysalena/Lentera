@@ -27,30 +27,26 @@
     <!-- ── STATISTIK GLOBAL (GRID) ── -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
 
-        <!-- Statistik 1: Total Sekolah -->
         <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
             <h4 style="font-size: 12px; font-weight: 700; color: var(--ink-60); text-transform: uppercase; margin-bottom: 8px;">Sekolah Terdaftar</h4>
-            <div style="font-size: 32px; font-weight: 800; color: var(--ink);">{{ $total_sekolah }}</div>
+            <div style="font-size: 32px; font-weight: 800; color: var(--ink);">{{ number_format($total_sekolah) }}</div>
         </div>
 
-        <!-- Statistik 2: Total Guru -->
         <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
             <h4 style="font-size: 12px; font-weight: 700; color: var(--amber); text-transform: uppercase; margin-bottom: 8px;">Total Guru BK</h4>
-            <div style="font-size: 32px; font-weight: 800; color: var(--amber);">42</div>
+            <div style="font-size: 32px; font-weight: 800; color: var(--amber);">{{ number_format($total_guru) }}</div>
             <p style="font-size: 12px; color: var(--ink-30);">Akun pendidik terdaftar</p>
         </div>
 
-        <!-- Statistik 3: Total Siswa -->
         <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
             <h4 style="font-size: 12px; font-weight: 700; color: #0284C7; text-transform: uppercase; margin-bottom: 8px;">Total Siswa</h4>
-            <div style="font-size: 32px; font-weight: 800; color: #0284C7;">2,845</div>
+            <div style="font-size: 32px; font-weight: 800; color: #0284C7;">{{ number_format($total_siswa) }}</div>
             <p style="font-size: 12px; color: var(--ink-30);">Akun siswa terdaftar</p>
         </div>
 
-        <!-- Statistik 4: Laporan Dihasilkan -->
         <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
             <h4 style="font-size: 12px; font-weight: 700; color: #10B981; text-transform: uppercase; margin-bottom: 8px;">Analisis AI Selesai</h4>
-            <div style="font-size: 32px; font-weight: 800; color: #10B981;">1,920</div>
+            <div style="font-size: 32px; font-weight: 800; color: #10B981;">{{ number_format($total_analisis) }}</div>
             <p style="font-size: 12px; color: var(--ink-30);">Total laporan di-generate</p>
         </div>
     </div>
