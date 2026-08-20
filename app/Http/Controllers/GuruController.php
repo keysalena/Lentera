@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Hash;
 
 class GuruController extends Controller
 {
-    // Halaman Ringkasan (Dashboard)
+    
     public function dashboard()
     {
         $guru = \Illuminate\Support\Facades\Auth::user();
@@ -25,7 +25,7 @@ class GuruController extends Controller
         $nama_sekolah = $sekolah ? $sekolah->nama_sekolah : 'Sekolah LENTERA';
         $kode_lisensi_siswa = $sekolah ? $sekolah->kode_lisensi_siswa : 'KODE-BELUM-DISET';
 
-        // 2. Hitung Total Siswa di sekolah yang sama
+        
         $userIdsSiswa = \App\Models\User::where('id_role', 3)
             ->where('id_sekolah', $guru->id_sekolah)
             ->pluck('id');
@@ -33,12 +33,12 @@ class GuruController extends Controller
         $total_siswa = $userIdsSiswa->count();
         $siswaIds = \App\Models\Siswa::whereIn('id_user', $userIdsSiswa)->pluck('id_siswa');
 
-        // 3. Hitung Laporan yang sudah selesai
+        
         $laporan_diakses = \App\Models\Eksplorasi::whereIn('id_siswa', $siswaIds)
             ->where('status', 'selesai')
             ->count();
 
-        // 4. Tarik 5 Aktivitas Eksplorasi Terkini
+        
         $aktivitas_terkini = \App\Models\Eksplorasi::whereIn('id_siswa', $siswaIds)
             ->orderBy('updated_at', 'desc')
             ->take(5)
@@ -51,7 +51,7 @@ class GuruController extends Controller
             }
         }
 
-        // 5. Dominansi Bidang (Mengambil rumpun_ilmu dari ML)
+        
         $bidang_dominan = 'Belum Ada Data';
 
         $eksplorasiSelesaiIds = \App\Models\Eksplorasi::whereIn('id_siswa', $siswaIds)
@@ -62,14 +62,14 @@ class GuruController extends Controller
             ->whereNotNull('hasil_ocr')
             ->pluck('hasil_ocr');
 
-        // C. Ekstrak 'rumpun_ilmu' dari analisis_akademik hasil ML
+        
         $rumpunList = collect($hasilML)->map(function ($json) {
             $data = json_decode($json, true);
-            // Ambil dari path: analisis_akademik -> rumpun_ilmu
+            
             return $data['analisis_akademik']['rumpun_ilmu'] ?? null;
         })->filter();
 
-        // D. Cari rumpun yang paling sering muncul (Modus)
+        
         if ($rumpunList->isNotEmpty()) {
             $bidang_dominan = $rumpunList->mode()[0];
         }
@@ -88,14 +88,14 @@ class GuruController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Tentukan Default Angkatan (Tahun Sekarang dikurangi 2)
-        $tahunSekarang = date('Y'); // Mengambil tahun saat ini (misal: 2026)
-        $defaultAngkatan = $tahunSekarang - 2; // Hasil: 2024
+        
+        $tahunSekarang = date('Y'); 
+        $defaultAngkatan = $tahunSekarang - 2; 
 
-        // Ambil filter angkatan dari request, jika tidak ada, gunakan default
+        
         $filterAngkatan = $request->input('filter_angkatan', $defaultAngkatan);
 
-        // 2. Ambil daftar angkatan unik untuk mengisi opsi Dropdown
+        
         $angkatans = \App\Models\Siswa::whereHas('user', function ($q) use ($user) {
             $q->where('id_sekolah', $user->id_sekolah);
         })
@@ -105,18 +105,18 @@ class GuruController extends Controller
             ->orderBy('angkatan', 'desc')
             ->pluck('angkatan');
 
-        // 3. Query Data Siswa
+        
         $query = User::where('id_sekolah', $user->id_sekolah)
             ->where('id_role', 3);
 
-        // 4. Terapkan Filter Angkatan (jika bukan 'all')
+        
         if ($filterAngkatan != 'all') {
             $query->whereHas('siswa', function ($q) use ($filterAngkatan) {
                 $q->where('angkatan', $filterAngkatan);
             });
         }
 
-        // 5. Terapkan Filter Pencarian Nama
+        
         if ($request->has('cari') && $request->cari != '') {
             $query->where('nama', 'like', '%' . $request->cari . '%');
         }
@@ -126,7 +126,7 @@ class GuruController extends Controller
         return view('guru.siswa', compact('siswas', 'angkatans', 'filterAngkatan'));
     }
 
-    // Halaman Detail Profil Siswa
+    
     public function detailSiswa($id)
     {
         $guru = Auth::user();
@@ -190,19 +190,19 @@ class GuruController extends Controller
     {
         $user = \Illuminate\Support\Facades\Auth::user();
 
-        // 1. Ambil semua siswa di sekolah guru tersebut
+        
         $query = \App\Models\User::where('id_sekolah', $user->id_sekolah)
-            ->where('id_role', 3); // Role Siswa
+            ->where('id_role', 3); 
 
-        // Fitur Pencarian
+        
         if ($request->has('cari') && $request->cari != '') {
             $query->where('nama', 'like', '%' . $request->cari . '%');
         }
 
-        // Ambil data siswa dengan relasi yang dibutuhkan
+        
         $siswas = $query->paginate(10);
 
-        // 2. Olah data untuk tabel (menambahkan bidang_ai secara dinamis)
+        
         foreach ($siswas as $siswa) {
             $data_siswa = \App\Models\Siswa::where('id_user', $siswa->id)->first();
             if ($data_siswa) {
@@ -219,7 +219,7 @@ class GuruController extends Controller
             }
         }
 
-        // 3. Olah data untuk Diagram Batang (Rekap per sekolah)
+        
         $siswaIds = \App\Models\Siswa::whereIn('id_user', function ($q) use ($user) {
             $q->select('id')->from('users')->where('id_sekolah', $user->id_sekolah);
         })->pluck('id_siswa');
@@ -239,17 +239,17 @@ class GuruController extends Controller
         return view('guru.dominasi', compact('siswas', 'rekapBidang'));
     }
 
-    // Halaman Kelengkapan Profil Guru
+    
     public function profil()
     {
         $user = Auth::user();
-        // Mengambil data spesifik guru (NIP, dll) dari tabel guru
+        
         $guru = Guru::where('id_user', $user->id)->first();
 
         return view('guru.profil', compact('user', 'guru'));
     }
 
-    // Fungsi untuk menyimpan perubahan profil guru
+    
     public function updateProfil(Request $request)
     {
         $user = Auth::user();
@@ -259,10 +259,10 @@ class GuruController extends Controller
             'nip' => 'required|string|max:50',
         ]);
 
-        // Update nama di tabel users
+        
         $user->update(['nama' => $request->nama]);
 
-        // Update NIP di tabel guru
+        
         $guru = Guru::where('id_user', $user->id)->first();
         if ($guru) {
             $guru->update(['nip' => $request->nip]);
@@ -279,32 +279,32 @@ class GuruController extends Controller
 
         $user = Auth::user();
 
-        // Cek apakah password lama yang dimasukkan sesuai dengan yang ada di database
+        
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Kata sandi saat ini tidak cocok dengan catatan kami.']);
         }
 
-        // Update ke password baru
+        
         $user->update([
             'password' => Hash::make($request->password)
         ]);
 
         return back()->with('success', 'Kata sandi berhasil diperbarui!');
     }
-    // ==========================================
-    // FITUR SMART TRIAGE: RUANG KONSULTASI GURU
-    // ==========================================
+    
+    
+    
 
     public function konsultasi()
     {
         $user = Auth::user();
 
-        // Cari identitas ID Guru dari user yang sedang login
+        
         $dataGuru = Guru::where('id_user', $user->id)->first();
 
         $konsultasi = [];
 
-        // Jika data guru ditemukan, tarik pengajuan yang id_guru-nya cocok dengan guru ini
+        
         if ($dataGuru) {
             $konsultasi = \App\Models\Konsultasi::where('id_guru', $dataGuru->id_guru)
                 ->orderByRaw("FIELD(status, 'Menunggu', 'Dijadwalkan', 'Selesai')")
@@ -312,7 +312,7 @@ class GuruController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            // Injeksi manual data akun siswa untuk ditampilkan di layar
+            
             foreach ($konsultasi as $k) {
                 $k->data_siswa = Siswa::find($k->id_siswa);
                 if ($k->data_siswa) {
@@ -329,29 +329,29 @@ class GuruController extends Controller
         $guru = Auth::user();
         $konsultasi = \App\Models\Konsultasi::findOrFail($id);
 
-        // Validasi input tanggal/waktu
+        
         $request->validate([
             'jadwal_konsultasi' => 'required|date'
         ]);
 
         $dataGuru = Guru::where('id_user', $guru->id)->first();
 
-        // 1. Simpan perubahan status dan jadwal ke database
+        
         $konsultasi->update([
             'status' => 'Dijadwalkan',
             'jadwal_konsultasi' => $request->jadwal_konsultasi,
             'id_guru' => $dataGuru ? $dataGuru->id_guru : null
         ]);
 
-        // 2. Cari Email Siswa dengan Alur Relasi yang Benar
-        // Konsultasi -> id_siswa -> Tabel Siswa -> id_user -> Tabel User -> email
+        
+        
         $dataSiswa = \App\Models\Siswa::find($konsultasi->id_siswa);
 
         if ($dataSiswa) {
             $akunSiswa = User::find($dataSiswa->id_user);
 
             if ($akunSiswa && $akunSiswa->email) {
-                // 3. Eksekusi pengiriman Email & Kalender
+                
                 Mail::to($akunSiswa->email)->send(new NotifikasiJadwal($akunSiswa, $konsultasi));
             }
         }
@@ -374,7 +374,7 @@ class GuruController extends Controller
     }
     public function panduan()
     {
-        // Mengarahkan ke file view resources/views/siswa/panduan.blade.php
+        
         return view('guru.panduan');
     }
 }

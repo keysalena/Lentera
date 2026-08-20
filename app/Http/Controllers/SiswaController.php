@@ -18,21 +18,21 @@ use Illuminate\Support\Facades\Hash;
 
 class SiswaController extends Controller
 {
-    // Halaman Dashboard Siswa
+    
     public function dashboard()
     {
         $user = \Illuminate\Support\Facades\Auth::user();
         $siswa = \App\Models\Siswa::where('id_user', $user->id)->firstOrFail();
 
-        // Ambil data eksplorasi terbaru
+        
         $eksplorasi = \App\Models\Eksplorasi::where('id_siswa', $siswa->id_siswa)->orderBy('created_at', 'desc')->first();
 
-        // Siapkan variabel default
+        
         $hasGambar = false;
         $hasNilai = false;
         $statusEksplorasi = 'belum_mulai';
 
-        // Cek progres jika sudah ada draft/proses
+        
         if ($eksplorasi) {
             $statusEksplorasi = $eksplorasi->status;
 
@@ -43,15 +43,15 @@ class SiswaController extends Controller
         return view('siswa.ringkasan', compact('siswa', 'hasGambar', 'hasNilai', 'statusEksplorasi', 'eksplorasi'));
     }
 
-    // =====================================================================
-    // 1. MENAMPILKAN HALAMAN INPUT (DENGAN PROGRES)
-    // =====================================================================
+    
+    
+    
     public function input(Request $request)
     {
         $user = Auth::user();
         $siswa = Siswa::where('id_user', $user->id)->firstOrFail();
 
-        // Tarik data eksplorasi terbaru (jika tidak ada, buat draf baru)
+        
         $eksplorasi = Eksplorasi::where('id_siswa', $siswa->id_siswa)
             ->orderBy('created_at', 'desc')
             ->first();
@@ -63,12 +63,12 @@ class SiswaController extends Controller
             ]);
         }
 
-        // Tarik data progres yang sudah tersimpan di database
+        
         $gambar = EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
         $nilai = NilaiAkademik::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->whereNotNull('nilai')->pluck('nilai', 'id_mapel')->toArray();
         $skor = SkorKemampuan::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->pluck('skor', 'id_kemampuan')->toArray();
 
-        // Tentukan tahap yang aktif berdasarkan kelengkapan data
+        
         $step = 1;
         if ($gambar) $step = 2;
         if ($gambar && !empty($nilai)) $step = 3;
@@ -86,7 +86,7 @@ class SiswaController extends Controller
         $siswa = Siswa::where('id_user', $user->id)->firstOrFail();
         $eksplorasi = Eksplorasi::where('id_siswa', $siswa->id_siswa)->orderBy('created_at', 'desc')->firstOrFail();
 
-        // ── TAHAP 1: UPLOAD DOKUMEN TULISAN ──
+        
         if ($request->step == 1) {
             $request->validate(['tulisan_tangan' => 'required|image|mimes:jpeg,png,jpg|max:5120']);
 
@@ -111,7 +111,7 @@ class SiswaController extends Controller
             }
         }
 
-        // ── TAHAP 2: SIMPAN PROGRES NILAI AKADEMIK ──
+        
         if ($request->step == 2) {
             foreach ($request->all() as $key => $value) {
                 if (str_starts_with($key, 'mapel_') && $value !== null && $value !== '') {
@@ -125,10 +125,10 @@ class SiswaController extends Controller
             return redirect()->route('siswa.input')->with('success', 'Data nilai akademik berhasil diperbarui!');
         }
 
-        // ── TAHAP 3: KEMAMPUAN ATAU FINALISASI KE API ML ──
+        
         if ($request->step == 3) {
 
-            // SIMPAN DATA KEMAMPUAN KE DB TERLEBIH DAHULU
+            
             foreach ($request->all() as $key => $value) {
                 if (str_starts_with($key, 'kemampuan_') && $value !== null && $value !== '') {
                     $id_kemampuan = str_replace('kemampuan_', '', $key);
@@ -139,17 +139,17 @@ class SiswaController extends Controller
                 }
             }
 
-            // JIKA TOMBOL "FINALISASI" DITEKAN, TEMBAK KE FASTAPI
+            
             if ($request->has('action_finalisasi')) {
 
-                // 1. Ambil Path Gambar Asli
+                
                 $gambar = EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
                 if (!$gambar) return back()->with('error', 'Gambar belum diunggah! Mohon lengkapi Tahap 1.');
                 $imagePath = storage_path('app/public/' . $gambar->gambar);
 
                 if (!file_exists($imagePath)) return back()->with('error', 'File gambar fisik tidak ditemukan di server.');
 
-                // 2. Format Data Akademik (JSON Array Key huruf kecil)
+                
                 $nilaiAkademik = NilaiAkademik::with('mapel')->where('id_eksplorasi', $eksplorasi->id_eksplorasi)->get();
                 $akademikData = [];
                 foreach ($nilaiAkademik as $n) {
@@ -157,26 +157,26 @@ class SiswaController extends Controller
                     $akademikData[$key] = (float) $n->nilai;
                 }
 
-                // 3. Format Data Minat RIASEC (Sesuai dokumentasi ML v3.1 -> Format A)
+                
                 $skorKemampuan = SkorKemampuan::with('kemampuan')->where('id_eksplorasi', $eksplorasi->id_eksplorasi)->get();
                 $minatData = [];
                 foreach ($skorKemampuan as $s) {
-                    // Ambil kode_item dari relasi tabel kemampuan (contoh: q_R1, q_R2)
+                    
                     $key = $s->kemampuan->kode_item;
 
-                    // Pastikan key tidak kosong sebelum dimasukkan ke array
+                    
                     if (!empty($key)) {
                         $minatData[$key] = (int) $s->skor;
                     }
                 }
 
-                // 4. Request Multipart ke FastAPI
+                
                 try {
-                    $response = Http::timeout(60) // Tunggu maksimal 60 detik untuk ML memproses
+                    $response = Http::timeout(60) 
                         ->attach('file', file_get_contents($imagePath), 'tulisan_siswa.jpg')
-                        // ->post('https://gpf0gt5s-8000.asse.devtunnels.ms/predict', [
+                        
                         ->post('http://localhost:8000/predict', [
-                            // Gunakan JSON_FORCE_OBJECT agar formatnya selalu berupa Object {...}
+                            
                             'akademik' => json_encode($akademikData, JSON_FORCE_OBJECT),
                             'minat'    => json_encode($minatData, JSON_FORCE_OBJECT),
                         ]);
@@ -184,16 +184,16 @@ class SiswaController extends Controller
                     if ($response->successful()) {
                         $hasilJson = $response->json();
 
-                        // Simpan Full JSON hasil ML ke kolom hasil_ocr
+                        
                         $gambar->update(['hasil_ocr' => json_encode($hasilJson)]);
 
-                        // Update Status Eksplorasi & Siswa
+                        
                         $eksplorasi->update(['status' => 'selesai']);
                         $siswa->update(['status_data' => 'lengkap']);
 
                         return redirect()->route('siswa.hasil')->with('success', 'Analisis berhasil! Berikut adalah hasil pemetaan AI LENTERA.');
                     } else {
-                        // Jika FastAPI membalas Error 400/422/500
+                        
                         return back()->with('error', 'Gagal memproses data di server AI: ' . $response->body());
                     }
                 } catch (\Exception $e) {
@@ -201,7 +201,7 @@ class SiswaController extends Controller
                 }
             }
 
-            // JIKA HANYA SIMPAN PROGRES BIASA
+            
             return redirect()->route('siswa.input')->with('success', 'Data potensi minat berhasil disimpan!');
         }
     }
@@ -213,35 +213,35 @@ class SiswaController extends Controller
 
         $eksplorasi = Eksplorasi::where('id_siswa', $siswa->id_siswa)->orderBy('created_at', 'desc')->first();
 
-        // Jika belum finalisasi, lempar kembali ke halaman input
+        
         if (!$eksplorasi || $eksplorasi->status == 'draft') {
             return redirect()->route('siswa.input')->with('error', 'Anda belum menyelesaikan finalisasi analisis data.');
         }
 
         $gambar = EksplorasiGambar::where('id_eksplorasi', $eksplorasi->id_eksplorasi)->first();
 
-        // Dekode JSON string dari database kembali menjadi array PHP
+        
         $ml_data = $gambar && $gambar->hasil_ocr ? json_decode($gambar->hasil_ocr, true) : null;
 
         return view('siswa.hasil', compact('eksplorasi', 'ml_data'));
     }
 
-    // Halaman Kelengkapan Profil Siswa
+    
     public function profil()
     {
         $user = Auth::user();
-        // Ambil data spesifik siswa (NISN, Jenis Kelamin) dari tabel siswa
+        
         $siswa = Siswa::where('id_user', $user->id)->first();
 
         return view('siswa.profil', compact('user', 'siswa'));
     }
 
-    // Fungsi untuk menyimpan perubahan profil siswa
+    
     public function updateProfil(Request $request)
     {
         $user = Auth::user();
 
-        // 1. Validasi
+        
         $request->validate([
             'nama' => 'required|string|max:150',
             'nisn' => 'required|string|max:50',
@@ -249,7 +249,7 @@ class SiswaController extends Controller
             'kode_lisensi' => 'nullable|string',
         ]);
 
-        // 2. Update data dasar (Nama di Users, NISN/JK di Siswa)
+        
         $user->update(['nama' => $request->nama]);
 
         $siswa = Siswa::where('id_user', $user->id)->first();
@@ -260,12 +260,12 @@ class SiswaController extends Controller
             ]);
         }
 
-        // 3. LOGIKA UPDATE LISENSI (Hanya jika siswa belum punya sekolah)
+        
         if ($request->filled('kode_lisensi') && is_null($user->id_sekolah)) {
             $sekolah = Sekolah::where('kode_lisensi_siswa', $request->kode_lisensi)->first();
 
             if ($sekolah) {
-                // Update id_sekolah pada tabel users
+                
                 $user->update(['id_sekolah' => $sekolah->id_sekolah]);
 
                 return redirect()->back()->with('success', 'Profil diperbarui & Lisensi Sekolah berhasil diaktifkan!');
@@ -285,19 +285,19 @@ class SiswaController extends Controller
 
         $user = Auth::user();
 
-        // Cek apakah password lama yang dimasukkan sesuai dengan yang ada di database
+        
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Kata sandi saat ini tidak cocok dengan catatan kami.']);
         }
 
-        // Update ke password baru
+        
         $user->update([
             'password' => Hash::make($request->password)
         ]);
 
         return back()->with('success', 'Kata sandi berhasil diperbarui!');
     }
-    // Halaman Konsultasi Karier (Siswa)
+    
     public function konsultasi()
     {
         $user = \Illuminate\Support\Facades\Auth::user();
@@ -325,14 +325,14 @@ class SiswaController extends Controller
                 ->get();
         }
 
-        // --- FITUR BARU: Ambil Daftar Guru BK di Sekolah yang Sama ---
+        
         $userIdsGuru = \App\Models\User::where('id_role', 2)
             ->where('id_sekolah', $user->id_sekolah)
             ->pluck('id');
 
         $daftarGuru = \App\Models\Guru::whereIn('id_user', $userIdsGuru)->get();
 
-        // Gabungkan nama dari tabel User ke koleksi Guru secara manual
+        
         foreach ($daftarGuru as $g) {
             $g->akun = \App\Models\User::find($g->id_user);
         }
@@ -340,7 +340,7 @@ class SiswaController extends Controller
         return view('siswa.konsultasi', compact('eksplorasi', 'konsultasiAktif', 'riwayatKonsultasi', 'siswa', 'daftarGuru'));
     }
 
-    // Fungsi untuk memproses ajuan konsultasi baru
+    
     public function storeKonsultasi(\Illuminate\Http\Request $request)
     {
         $user = \Illuminate\Support\Facades\Auth::user();
@@ -348,12 +348,12 @@ class SiswaController extends Controller
 
         $request->validate([
             'id_eksplorasi' => 'required',
-            'id_guru' => 'required', // Wajib memilih Guru BK
+            'id_guru' => 'required', 
             'topik' => 'required|string',
             'alasan_siswa' => 'required|string',
         ]);
 
-        // Cek apakah ada jadwal konsultasi yang masih menggantung
+        
         $cekAktif = \App\Models\Konsultasi::where('id_siswa', $siswa->id_siswa)
             ->whereIn('status', ['Menunggu', 'Dijadwalkan'])
             ->first();
@@ -404,7 +404,7 @@ class SiswaController extends Controller
     }
     public function panduan()
     {
-        // Mengarahkan ke file view resources/views/siswa/panduan.blade.php
+        
         return view('siswa.panduan');
     }
 }

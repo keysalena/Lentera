@@ -3,7 +3,6 @@
 @section('dashboard_content')
 <div class="admin-summary" style="animation: fadeIn 0.4s ease-in-out;">
 
-    <!-- ── HEADER & ACTION BAR ── -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 20px;">
         <div>
             <h2 style="font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--ink); margin-bottom: 8px;">
@@ -24,7 +23,6 @@
         </div>
     </div>
 
-    <!-- ── STATISTIK GLOBAL (GRID) ── -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
 
         <div style="background: var(--white); padding: 24px; border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25);">
@@ -51,7 +49,6 @@
         </div>
     </div>
 
-    <!-- ── TABEL MITRA SEKOLAH (Tanpa Kolom Status) ── -->
     <div style="background: var(--white); border-radius: 20px; border: 1px solid rgba(171, 168, 159, 0.25); overflow: hidden; margin-bottom: 32px;">
         <div style="padding: 24px 32px; border-bottom: 1px solid var(--cream); display: flex; justify-content: space-between; align-items: center;">
             <h3 style="font-size: 18px; font-weight: 700; color: var(--ink);">Daftar Mitra Sekolah</h3>

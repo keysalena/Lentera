@@ -162,26 +162,26 @@
     const lisensiNote = document.getElementById('lisensiNote');
     const lisensiInfo = document.getElementById('lisensiInfo');
 
-    // 1. Fungsi Tambah
+    
     function openAddModal() {
         title.innerText = 'Tambah Mitra Baru';
         form.action = "{{ route('admin.sekolah.store') }}";
         methodInput.value = 'POST';
-        lisensiNote.style.display = 'block'; // Tampilkan info lisensi otomatis
-        lisensiInfo.style.display = 'none'; // Sembunyikan info lisensi
+        lisensiNote.style.display = 'block'; 
+        lisensiInfo.style.display = 'none'; 
 
         inputNama.value = '';
         inputAlamat.value = '';
         modal.style.display = 'flex';
     }
 
-    // 2. Fungsi Edit
+    
     function openEditModal(id, nama, alamat) {
         title.innerText = 'Edit Data Mitra';
-        form.action = "/admin/sekolah/" + id; // Arahkan ke URL Update
-        methodInput.value = 'PUT'; // Mode Edit
-        lisensiNote.style.display = 'none'; // Sembunyikan karena edit tidak merubah lisensi
-        lisensiInfo.style.display = 'block'; // Tampilkan info lisensi
+        form.action = "/admin/sekolah/" + id; 
+        methodInput.value = 'PUT'; 
+        lisensiNote.style.display = 'none'; 
+        lisensiInfo.style.display = 'block'; 
 
         inputNama.value = nama;
         inputAlamat.value = alamat;
@@ -192,7 +192,7 @@
         document.getElementById(id).style.display = 'none';
     }
 
-    // Tutup modal jika klik di luar box
+    
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";

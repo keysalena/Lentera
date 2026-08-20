@@ -142,20 +142,18 @@
     const inputKodeItem = document.getElementById('inputKodeItem');
     const inputNamaKemampuan = document.getElementById('inputNamaKemampuan');
 
-    // Buka Modal Tambah / Edit
     function openKeepModal(id = null, kode_item = '', nama_kemampuan = '') {
         openKemampuanModal(id, kode_item, nama_kemampuan);
     }
 
     function openKemampuanModal(id = null, kode_item = '', nama_kemampuan = '') {
-        // Hapus "q_" dari kode_item sebelum menampilkannya di form
         const cleanKode = kode_item.replace('q_', '');
 
         if (id) {
             title.innerText = 'Edit Indikator Kemampuan';
             form.action = "/admin/kemampuan/" + id;
             methodInput.value = 'PUT';
-            inputKodeItem.value = cleanKode; // Input bersih tanpa "q_"
+            inputKodeItem.value = cleanKode; 
             inputNamaKemampuan.value = nama_kemampuan;
         } else {
             title.innerText = 'Tambah Indikator Baru';

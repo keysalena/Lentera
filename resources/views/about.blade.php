@@ -18,12 +18,12 @@
         </div>
         <div class="hero-right">
             <div class="hero-image-wrapper" style="width: 280px; height: 280px;">
-                <!-- <div class="pulse-ring ring-1" style="width: 280px; height: 280px;"></div>
+                
                 <div class="pulse-ring ring-2" style="width: 240px; height: 240px;"></div> -->
-                <!-- <div class="bg-surface-container-lowest rounded-full flex items-center justify-center" style="width: 200px; height: 200px; background: var(--cream); position: relative; z-index: 10;"> -->
+                
                     <img src="{{ asset('img/logo_L.png') }}" alt="Hero Image" class="hero-main-img">
 
-                <!-- </div> -->
+                
             </div>
         </div>
     </div>

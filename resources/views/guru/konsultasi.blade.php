@@ -39,15 +39,15 @@
     <div id="konsultasi-container" style="display: flex; flex-direction: column; gap: 16px;">
         @forelse($konsultasi as $k)
             @php
-                // Tentukan warna border berdasarkan prioritas
-                $borderColor = '#10B981'; // Default Hijau (Rendah)
+                
+                $borderColor = '#10B981'; 
                 $badgeBg = '#D1FAE5'; $badgeText = '#065F46';
                 
                 if($k->tingkat_prioritas == 'Tinggi') {
-                    $borderColor = '#EF4444'; // Merah
+                    $borderColor = '#EF4444'; 
                     $badgeBg = '#FEE2E2'; $badgeText = '#B91C1C';
                 } elseif($k->tingkat_prioritas == 'Menengah') {
-                    $borderColor = '#F59E0B'; // Kuning
+                    $borderColor = '#F59E0B'; 
                     $badgeBg = '#FEF3C7'; $badgeText = '#B45309';
                 }
 
@@ -155,12 +155,12 @@
 
 <script>
     function filterKonsultasi(statusTarget, btnElement) {
-        // 1. Update style tombol aktif
+        
         const buttons = document.querySelectorAll('.tab-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
 
-        // 2. Filter kartu berdasarkan status
+        
         const cards = document.querySelectorAll('.konsultasi-card');
         let visibleCount = 0;
 
@@ -175,7 +175,7 @@
             }
         });
 
-        // 3. Tampilkan pesan kosong jika tidak ada data di tab tersebut
+        
         const filterEmptyState = document.getElementById('filter-empty-state');
         if (visibleCount === 0 && cards.length > 0) {
             filterEmptyState.style.display = 'block';
@@ -184,7 +184,7 @@
         }
     }
 
-    // Jalankan filter 'Menunggu' secara default saat halaman dimuat
+    
     document.addEventListener("DOMContentLoaded", function() {
         const firstTab = document.querySelector('.tab-btn');
         if(firstTab) {

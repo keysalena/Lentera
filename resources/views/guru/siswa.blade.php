@@ -3,7 +3,7 @@
 @section('dashboard_content')
 <div class="guru-siswa" style="animation: fadeIn 0.4s ease-in-out;">
 
-    <!-- ── HEADER & FILTER BAR ── -->
+    
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
         <div>
             <h2 style="font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink);">Daftar Siswa</h2>
@@ -31,7 +31,7 @@
         </form>
     </div>
 
-    <!-- ── TABEL DATA SISWA ── -->
+    
     <div style="background: var(--white); border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25); overflow: hidden;">
         <table style="width: 100%; border-collapse: collapse;">
             <thead style="background: var(--cream);">
@@ -53,7 +53,7 @@
                         {{ $siswa->siswa->angkatan }}
                     </td>
                     <td style="padding: 20px 24px;">
-                        <!-- Logika sederhana: Jika NISN masih pakai 'S' (default saat daftar), berarti belum lengkap -->
+                        
                         @if(Str::startsWith(optional($siswa->siswa)->nisn, 'S'))
                         <span style="background: #FFF7ED; color: #EA580C; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">PROGRES</span>
                         @else

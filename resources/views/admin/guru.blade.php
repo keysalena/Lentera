@@ -178,17 +178,14 @@
     const inputPassword = document.getElementById('inputPassword');
     const passwordNote = document.getElementById('passwordNote');
 
-    // 1. Aksi Membuka Modal Tambah Data
     function openAddModal() {
         title.innerText = 'Tambah Akun Guru Baru';
         form.action = "{{ route('admin.guru.store') }}";
         methodInput.value = 'POST';
         
-        // Atur input password menjadi wajib diisi saat tambah baru
         inputPassword.setAttribute('required', 'required');
         passwordNote.style.display = 'none';
 
-        // Reset form data kosong
         inputNama.value = '';
         inputNip.value = '';
         inputEmail.value = '';
@@ -198,22 +195,19 @@
         modal.style.display = 'flex';
     }
 
-    // 2. Aksi Membuka Modal Edit Data (Auto-Fill)
     function openEditModal(id, nama, email, idSekolah, nip) {
         title.innerText = 'Edit Informasi Guru BK';
         form.action = "/admin/guru/" + id;
         methodInput.value = 'PUT';
 
-        // Hilangkan kewajiban isi password saat mode edit
         inputPassword.removeAttribute('required');
         passwordNote.style.display = 'block';
 
-        // Set isi field form sesuai baris tabel yang diklik
         inputNama.value = nama;
         inputNip.value = nip;
         inputEmail.value = email;
         inputSekolah.value = idSekolah;
-        inputPassword.value = ''; // Kosongkan input sandi
+        inputPassword.value = ''; 
 
         modal.style.display = 'flex';
     }

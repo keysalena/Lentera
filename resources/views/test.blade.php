@@ -135,7 +135,7 @@
 </head>
 
 <body class="antialiased">
-    <!-- Navigation Shell -->
+    
     <nav class="fixed top-0 w-full z-50 glass-nav bg-surface/80 shadow-[0_8px_30px_rgb(87,94,112,0.04)] px-container-padding-mobile md:px-container-padding-desktop py-4 flex justify-between items-center">
         <div class="font-display text-headline-md font-bold text-on-surface">LENTERA</div>
         <div class="hidden md:flex items-center gap-12">
@@ -146,7 +146,7 @@
             Mulai Analisis
         </button>
     </nav>
-    <!-- Hero Section -->
+    
     <section class="pt-32 pb-24 px-container-padding-mobile md:px-container-padding-desktop flex flex-col lg:flex-row items-center gap-16 min-h-screen relative overflow-hidden">
         <div class="flex-1 z-10">
             <span class="inline-block font-label-md text-label-md px-4 py-1 rounded-full bg-primary/10 text-primary mb-6">AI-Powered Educational Guidance</span>
@@ -171,7 +171,7 @@
             </div>
         </div>
     </section>
-    <!-- About Summary -->
+    
     <section class="py-section-gap px-container-padding-mobile md:px-container-padding-desktop bg-surface-container-low relative overflow-hidden">
         <div class="max-w-4xl mx-auto text-center relative z-10">
             <h2 class="font-display text-headline-lg mb-8">Apa itu LENTERA?</h2>
@@ -181,21 +181,21 @@
                 </p>
             </div>
         </div>
-        <!-- Decorative subtle gradient -->
+        
         <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-primary-fixed opacity-10 rounded-full blur-3xl"></div>
     </section>
-    <!-- How It Works - Fluid Pathway -->
+    
     <section class="py-section-gap px-container-padding-mobile md:px-container-padding-desktop">
         <div class="text-center mb-24">
             <h2 class="font-display text-headline-lg mb-4">Proses Kerja Cerdas</h2>
             <p class="text-secondary font-body-md">Langkah sederhana menuju masa depan yang lebih terarah</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-5 gap-8 relative">
-            <!-- Fluid Connector Background (Visible on Desktop) -->
+            
             <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-primary/10 -translate-y-1/2 -z-10">
                 <div class="h-full bg-primary/40 w-1/2 rounded-full path-flow"></div>
             </div>
-            <!-- Steps -->
+            
             <div class="flex flex-col items-center text-center group">
                 <div class="w-16 h-16 rounded-full bg-white shadow-lg border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-300">
                     <span class="material-symbols-outlined text-3xl">edit_note</span>
@@ -233,7 +233,7 @@
             </div>
         </div>
     </section>
-    <!-- Advantages - Bento Grid Style -->
+    
     <section class="py-section-gap px-container-padding-mobile md:px-container-padding-desktop bg-surface-container">
         <h2 class="font-display text-headline-lg text-center mb-16">Keunggulan Teknologi Kami</h2>
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8 h-auto">
@@ -279,7 +279,7 @@
             </div>
         </div>
     </section>
-    <!-- Sample Results -->
+    
     <section class="py-section-gap px-container-padding-mobile md:px-container-padding-desktop">
         <div class="max-w-4xl mx-auto">
             <div class="bg-white rounded-xl shadow-[0_32px_64px_-16px_rgba(87,94,112,0.1)] overflow-hidden">
@@ -339,7 +339,7 @@
             </div>
         </div>
     </section>
-    <!-- Testimonials -->
+    
     <section class="py-section-gap px-container-padding-mobile md:px-container-padding-desktop bg-surface-container-low">
         <h2 class="font-display text-headline-lg text-center mb-16">Kisah Sukses Pengguna</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -381,7 +381,7 @@
             </div>
         </div>
     </section>
-    <!-- FAQ -->
+    
     <section class="py-section-gap px-container-padding-mobile md:px-container-padding-desktop max-w-4xl mx-auto">
         <h2 class="font-display text-headline-lg text-center mb-12">Pertanyaan Umum</h2>
         <div class="space-y-4">
@@ -415,7 +415,7 @@
             </details>
         </div>
     </section>
-    <!-- Footer -->
+    
     <footer class="bg-surface-container-low px-container-padding-mobile md:px-container-padding-desktop py-12 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-surface-container">
         <div class="font-display text-headline-md font-bold text-on-surface">LENTERA</div>
         <div class="flex gap-8">
@@ -428,7 +428,7 @@
         </div>
     </footer>
     <script>
-        // Smooth reveal animations on scroll
+        
         const observerOptions = {
             threshold: 0.1
         };
@@ -447,7 +447,7 @@
             observer.observe(el);
         });
 
-        // Hover scale effect for primary buttons
+        
         document.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('mousedown', () => {
                 btn.style.transform = 'scale(0.95)';

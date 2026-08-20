@@ -26,7 +26,7 @@
                 <h3>Mengisi Instrumen RIASEC</h3>
                 <p>
                     Jawablah seluruh pernyataan kuesioner minat pada menu
-                    <b>Eksplorasi Minat</b> dengan jujur, sesuai minat, kemampuan,
+                    <b>Input Eksplorasi</b> dengan jujur, sesuai minat, kemampuan,
                     dan citra diri kamu saat ini.
                 </p>
             </div>
@@ -45,7 +45,7 @@
             <div class="guide-step__body">
                 <div class="guide-step__title-row">
                     <h3>Mengisi Nilai Akademik</h3>
-                    <!-- <span class="guide-pill">Opsional</span> -->
+                    
                 </div>
                 <p>Masukkan nilai rapor kamu pada kolom mata pelajaran yang tersedia.</p>
                 <div class="guide-note">
@@ -69,7 +69,7 @@
                 <p>
                     Siapkan kertas kosong, tuliskan cita-cita atau hobi kamu minimal
                     5 baris. Foto tulisan tersebut dengan jelas dan pencahayaan cukup,
-                    lalu unggah pada menu <b>Eksplorasi Minat</b>.
+                    lalu unggah pada menu <b>Input Eksplorasi</b>.
                 </p>
                 <ul class="guide-checklist">
                     <li>Gunakan alas kertas polos, tanpa garis.</li>

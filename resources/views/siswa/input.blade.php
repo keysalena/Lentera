@@ -3,18 +3,18 @@
 
 @section('dashboard_content')
 @php
-// Menghitung kelengkapan data Minat
+
 $totalMinat = count($kemampuans);
 $filledMinat = count($skor);
 
-// Mengecek apakah minat sudah full (semua soal terjawab)
+
 $isMinatFull = $totalMinat > 0 && $filledMinat >= $totalMinat;
 
-// Kelengkapan Akademik & Gambar
+
 $isAkademikDone = !empty($nilai);
 $isGambarDone = !empty($gambar);
 
-// Menentukan tahapan UI yang aktif (wajib berurutan dan full untuk lanjut)
+
 $uiStep = 1;
 if ($isMinatFull) $uiStep = 2;
 if ($isMinatFull && $isAkademikDone) $uiStep = 3;
@@ -43,7 +43,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
         </p>
     </div>
 
-    <!-- PROGRESS BAR UI -->
+    
     <div style="display: flex; align-items: center; margin-bottom: 32px; max-width: 750px;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; 
@@ -76,7 +76,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
         </div>
     </div>
 
-    <!-- ==================== TAHAP 1: INSTRUMEN MINAT ==================== -->
+    
     <div style="background: var(--white); padding: 40px; border-radius: 20px; border: 1px solid rgba(171, 168, 159, 0.25); box-shadow: 0 4px 24px rgba(87, 94, 112, 0.02); max-width: 900px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 1px solid var(--cream); padding-bottom: 16px;">
             <div>
@@ -100,7 +100,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
         $no_q = 0;
         @endphp
         @if($isMinatFull && $edit_step != 1)
-        <!-- Tampilan Ringkas Jika Sudah Full (Bisa diedit lagi) -->
+        
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;">
             @foreach($kemampuans as $kemampuan)
             @if(isset($skor[$kemampuan->id_kemampuan]) && $skor[$kemampuan->id_kemampuan] !== null)
@@ -112,7 +112,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
             @endforeach
         </div>
         @else
-        <!-- Tampilan Form Pengisian Minat -->
+        
         <form action="{{ route('siswa.eksplorasi.store') }}" method="POST" id="formMinat">
             @csrf
             <input type="hidden" name="step" value="3">
@@ -138,7 +138,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
                     </select>
                 </div>
 
-                <!-- Tombol Simpan Draf Tipis setiap 4 soal -->
+                
                 @if(($index + 1) % 4 == 0 && ($index + 1) != $totalMinat)
                 <div style="text-align: right; margin-top: -8px; margin-bottom: 8px;">
                     <button type="submit" style="background: transparent; color: #10B981; border: 1px dashed #10B981; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#F0FDF4'" onmouseout="this.style.background='transparent'">
@@ -157,12 +157,12 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
                 <a href="{{ route('siswa.input') }}" style="background: transparent; color: var(--ink-60); padding: 12px 28px; border: 1px solid var(--ink-30); border-radius: 8px; font-weight: 700; text-decoration: none;">Batal</a>
                 @endif
 
-                <!-- Tombol Simpan Draf Utama (Bebas disimpan walau belum full) -->
+                
                 <button type="submit" style="background: transparent; color: var(--ink-60); border: 1px solid var(--ink-30); padding: 12px 28px; border-radius: 8px; font-weight: 700; cursor: pointer;">
                     Simpan Draf
                 </button>
 
-                <!-- Tombol Lanjut (Dicegat JavaScript jika belum 24 soal) -->
+                
                 <button type="submit" onclick="return validateMinatFull(event);" style="background: var(--amber); color: white; padding: 12px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
                     Simpan & Lanjut
                 </button>
@@ -171,7 +171,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
         @endif
     </div>
 
-    <!-- ==================== TAHAP 2: DATA AKADEMIK ==================== -->
+    
     @if($uiStep >= 2)
     <div style="background: var(--white); padding: 40px; border-radius: 20px; border: 1px solid rgba(171, 168, 159, 0.25); box-shadow: 0 4px 24px rgba(87, 94, 112, 0.02); max-width: 900px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 1px solid var(--cream); padding-bottom: 16px;">
@@ -223,7 +223,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
     </div>
     @endif
 
-    <!-- ==================== TAHAP 3: TULISAN REFLEKTIF ==================== -->
+    
     @if($uiStep >= 3)
     <div style="background: var(--white); padding: 40px; border-radius: 20px; border: 1px solid rgba(171, 168, 159, 0.25); box-shadow: 0 4px 24px rgba(87, 94, 112, 0.02); max-width: 900px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 1px solid var(--cream); padding-bottom: 16px;">
@@ -292,7 +292,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
     </div>
     @endif
 
-    <!-- ==================== TAHAP FINALISASI AI ==================== -->
+    
     @if($isMinatFull && $isAkademikDone && $isGambarDone && $edit_step == null)
     <div style="background: #10B981; padding: 32px 40px; border-radius: 20px; max-width: 900px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);">
         <div>
@@ -313,7 +313,7 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
 </div>
 
 <script>
-    // Validasi pencegahan lanjut jika instrumen minat belum diisi ke-24 soalnya
+    
     function validateMinatFull(e) {
         const selects = document.querySelectorAll('.select-minat');
         let filledCount = 0;
@@ -325,14 +325,14 @@ if ($isMinatFull && $isAkademikDone && $isGambarDone) $uiStep = 4;
         });
 
         if (filledCount < selects.length) {
-            e.preventDefault(); // Mencegah form tersubmit
+            e.preventDefault(); 
             alert(`Harap lengkapi semua instrumen minat sebelum lanjut ke tahap Akademik.\n\nAnda baru mengisi ${filledCount} dari ${selects.length} soal.\nJika ingin menyimpan sementara, gunakan tombol "Simpan Draf".`);
             return false;
         }
-        return true; // Boleh lanjut jika full
+        return true; 
     }
 
-    // Ganti teks area saat upload file
+    
     function previewFileName(input) {
         const dropzoneText = document.getElementById('dropzone-text-1');
         const filePreview = document.getElementById('file-preview-1');

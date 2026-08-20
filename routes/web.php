@@ -5,8 +5,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\SiswaController;
-// Jangan lupa import controller lain jika ada, misalnya:
-// use App\Http\Controllers\SiswaController; 
 
 // --- GUEST ROUTES (Belum Login) ---
 Route::middleware('guest')->group(function () {
@@ -21,10 +19,8 @@ Route::middleware('guest')->group(function () {
 });
 
 
-// --- AUTHENTICATED ROUTES (Sudah Login) ---
 Route::middleware('auth')->group(function () {
 
-    // Tombol Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // --- DASHBOARD ADMIN ---
@@ -59,16 +55,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware('auth')->prefix('guru')->name('guru.')->group(function () {
         Route::get('/dashboard', [GuruController::class, 'dashboard'])->name('dashboard');
         Route::get('/siswa', [GuruController::class, 'siswa'])->name('siswa');
-
-        // Tambahkan ini untuk melihat detail siswa
         Route::get('/siswa/{id}', [GuruController::class, 'detailSiswa'])->name('siswa.detail');
 
         Route::get('/profil', [GuruController::class, 'profil'])->name('profil');
         Route::put('/profil', [GuruController::class, 'updateProfil'])->name('profil.update');
         Route::put('/profil/password', [GuruController::class, 'updatePassword'])->name('password.update');
-        // ── ROUTE BARU: Halaman Dominasi Bidang (Daftar Rekomendasi Bidang Siswa) ──
         Route::get('/dominasi-bidang', [GuruController::class, 'dominasiBidang'])->name('dominasi');
-        // Route Ruang Konsultasi (Smart Triage)
         Route::get('/panduan', [GuruController::class, 'panduan'])->name('panduan');
 
         Route::get('/konsultasi', [GuruController::class, 'konsultasi'])->name('konsultasi');
@@ -84,7 +76,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/hasil', [SiswaController::class, 'hasil'])->name('hasil');
         Route::get('/konsultasi', [SiswaController::class, 'konsultasi'])->name('konsultasi');
         Route::post('/konsultasi', [SiswaController::class, 'storeKonsultasi'])->name('konsultasi.store');
-        // Route untuk Profil Siswa
         Route::get('/panduan', [SiswaController::class, 'panduan'])->name('panduan');
         Route::put('/profil/password', [SiswaController::class, 'updatePassword'])->name('password.update');
         Route::get('/profil', [SiswaController::class, 'profil'])->name('profil');
@@ -92,28 +83,24 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::get('/test-email', function () {
-    // 1. Ambil user yang sedang login, atau ambil user pertama dari tabel users
-    $user = \Illuminate\Support\Facades\Auth::user() ?? \App\Models\User::first();
+// Route::get('/test-email', function () {
+//     $user = \Illuminate\Support\Facades\Auth::user() ?? \App\Models\User::first();
 
-    if (!$user) {
-        return "Gagal: Belum ada data user di dalam database.";
-    }
+//     if (!$user) {
+//         return "Gagal: Belum ada data user di dalam database.";
+//     }
 
-    try {
-        // 2. Kirim email sederhana dalam bentuk teks murni (tanpa view HTML)
-        \Illuminate\Support\Facades\Mail::raw('Halo ' . $user->nama . ', ini adalah email percobaan langsung dari aplikasi LENTERA. Jika Anda menerima email ini, berarti sistem SMTP berhasil terhubung!', function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Uji Coba Koneksi Email LENTERA');
-        });
+//     try {
+//         \Illuminate\Support\Facades\Mail::raw('Halo ' . $user->nama . ', ini adalah email percobaan langsung dari aplikasi LENTERA. Jika Anda menerima email ini, berarti sistem SMTP berhasil terhubung!', function ($message) use ($user) {
+//             $message->to($user->email)
+//                 ->subject('Uji Coba Koneksi Email LENTERA');
+//         });
 
-        return "SUKSES! Email berhasil dikirim ke: " . $user->email . ". Silakan cek kotak masuk atau folder Spam.";
-    } catch (\Exception $e) {
-        // 3. Tangkap dan tampilkan pesan error jika gagal terkirim
-        return "GAGAL MENGIRIM EMAIL. Error: " . $e->getMessage();
-    }
-});
-// --- PUBLIC ROUTES ---
+//         return "SUKSES! Email berhasil dikirim ke: " . $user->email . ". Silakan cek kotak masuk atau folder Spam.";
+//     } catch (\Exception $e) {
+//         return "GAGAL MENGIRIM EMAIL. Error: " . $e->getMessage();
+//     }
+// });
 Route::get('/', function () {
     return view('home');
 });

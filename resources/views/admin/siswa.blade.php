@@ -217,7 +217,7 @@
         inputPassword.setAttribute('required', 'required');
         passwordNote.style.display = 'none';
 
-        // Reset inputs
+        
         inputNama.value = '';
         inputNisn.value = '';
         inputAngkatan.value = '';
@@ -237,9 +237,9 @@
         inputPassword.removeAttribute('required');
         passwordNote.style.display = 'block';
 
-        // Auto-Fill inputs
+        
         inputNama.value = nama;
-        inputNisn.value = nisn.startsWith('S') ? '' : nisn; // Kosongkan jika masih pakai kode dummy register
+        inputNisn.value = nisn.startsWith('S') ? '' : nisn; 
         inputAngkatan.value = angkatan;
         inputJk.value = jk;
         inputEmail.value = email;

@@ -4,36 +4,41 @@
 @section('dashboard_content')
 
 @php
-    // --- 1. Pengecekan Data ML ---
+    
     if (!$ml_data) {
         echo "<div style='padding: 20px; background: #FEF2F2; color: #991B1B; border-radius: 12px;'>Data hasil analisis belum tersedia atau terjadi kesalahan pada AI. Silakan ulangi finalisasi data.</div>";
         return;
     }
 
-    // --- 2. Mengolah Skor RIASEC ---
-    // Mengambil skor (dari skor_raw instrumen minat atau bisa juga dari riasec_karakter)
+    
     $riasecScores = $ml_data['riasec_minat']['skor_raw'] ?? [
         'Realistic' => 0, 'Investigative' => 0, 'Artistic' => 0,
         'Social' => 0, 'Enterprising' => 0, 'Conventional' => 0
     ];
     
-    // Urutkan skor dari yang tertinggi ke terendah
+    
     arsort($riasecScores);
     
-    // Ambil Top 3
+    
     $top3Keys = array_slice(array_keys($riasecScores), 0, 3);
     
-    // Buat Kode Holland (Huruf Depan)
+    
     $hollandInitials = array_map(function($key) { return substr($key, 0, 1); }, $top3Keys);
     $hollandCode = implode(' ', $hollandInitials);
     $hollandTypes = implode(' - ', $top3Keys);
 
-    // --- 3. Mengolah Rekomendasi Jurusan ---
-    $rekomendasi = $ml_data['rekomendasi_jurusan'] ?? [];
-    // Hitung persentase kecocokan dari top rekomendasi (asumsi skala maksimal API adalah 5.0)
+    
+    
+    $rekomendasi = array_slice($ml_data['rekomendasi_jurusan'] ?? [], 0, 3);
+    
+    
     $topFitScore = !empty($rekomendasi) ? round(($rekomendasi[0]['skor_kesesuaian'] / 5) * 100) : 0;
 
-    // --- 4. Data untuk Chart.js (Wajib berurutan R-I-A-S-E-C) ---
+    
+    
+    $rumpunIlmu = $ml_data['analisis_akademik']['rumpun_ilmu'] ?? (!empty($rekomendasi) ? $rekomendasi[0]['rumpun_ilmu'] : 'Belum Diketahui');
+
+    
     $chartData = [
         $riasecScores['Realistic'] ?? 0,
         $riasecScores['Investigative'] ?? 0,
@@ -43,7 +48,7 @@
         $riasecScores['Conventional'] ?? 0,
     ];
 
-    // --- 5. Konfigurasi Warna & Deskripsi ---
+    
     $riasecConfig = [
         'Realistic'     => ['color' => '#3B82F6', 'desc' => ['Suka praktik dan observasi nyata', 'Menyukai alat, mesin, atau teknologi', 'Senang beraktivitas yang melibatkan fisik/lapangan']],
         'Investigative' => ['color' => '#8B5CF6', 'desc' => ['Analitis dan sangat logis', 'Menyukai penelitian dan riset', 'Senang memecahkan masalah kompleks']],
@@ -53,7 +58,7 @@
         'Conventional'  => ['color' => '#64748B', 'desc' => ['Terstruktur, rapi, dan sistematis', 'Sangat teliti terhadap detail', 'Menyukai keteraturan dan instruksi yang jelas']]
     ];
 
-    $maxScore = max(16, max($riasecScores)); // Patokan bar panjang maksimum
+    $maxScore = max(16, max($riasecScores)); 
 @endphp
 
 <div class="dashboard-hasil" style="animation: fadeIn 0.5s ease-in-out;">
@@ -70,21 +75,34 @@
                 Hasil Eksplorasi Kariermu
             </h2>
             <p style="font-size: 15px; color: var(--ink-60); max-width: 700px; line-height: 1.6;">
-                Hasil berikut merupakan integrasi dari analisis tulisan tangan, nilai akademik, kemampuan diri, dan Kunci Karier Holland (RIASEC) menggunakan <em>Machine Learning</em>.
+                Hasil berikut merupakan integrasi dari analisis tulisan tangan, nilai akademik, dan Kunci Karier Holland (RIASEC) menggunakan <em>Machine Learning</em>.
             </p>
         </div>
     </div>
 
+    
     <div style="background: var(--ink); padding: 24px 32px; border-radius: 20px; box-shadow: 0 4px 24px rgba(87, 94, 112, 0.08); margin-bottom: 24px; color: var(--white); display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: center;">
-        <div>
+        
+        
+        <div style="flex: 1 1 200px;">
             <h3 style="font-size: 14px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Profil Minat Anda</h3>
-            <div style="font-size: 28px; font-weight: 800; margin-bottom: 4px;">Kode Holland: <span style="color: var(--amber);">{{ $hollandCode }}</span></div>
+            <div style="font-size: 28px; font-weight: 800; margin-bottom: 4px;">Kode: <span style="color: var(--amber);">{{ $hollandCode }}</span></div>
             <div style="font-size: 15px; color: rgba(255,255,255,0.9);">Tipe Dominan: {{ $hollandTypes }}</div>
         </div>
-        <div style="text-align: right; background: rgba(255,255,255,0.1); padding: 16px 24px; border-radius: 16px;">
+
+        
+        <div style="flex: 1 1 200px;">
+            <h3 style="font-size: 14px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Kecondongan Rumpun</h3>
+            <div style="font-size: 24px; font-weight: 800; color: #60A5FA; margin-bottom: 4px; line-height: 1.2;">{{ $rumpunIlmu }}</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.9);">Berdasarkan Analisis Akademik</div>
+        </div>
+
+        
+        <div style="text-align: right; background: rgba(255,255,255,0.1); padding: 16px 24px; border-radius: 16px; flex-shrink: 0;">
             <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Tingkat Kesesuaian</div>
             <div style="font-size: 32px; font-weight: 800; color: #10B981;">{{ $topFitScore }}%</div>
         </div>
+
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; margin-bottom: 24px;">
@@ -177,7 +195,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; margin-bottom: 24px;">
         <div style="background: var(--white); padding: 32px; border-radius: 20px; border: 1px solid rgba(171, 168, 159, 0.25); box-shadow: 0 4px 24px rgba(87, 94, 112, 0.02);">
             <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px;">Top Rekomendasi Jurusan</h3>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px;">Top 3 Rekomendasi Jurusan</h3>
                 <p style="font-size: 13px; color: var(--ink-60);">Daftar program studi yang memiliki tingkat kecocokan tertinggi dengan profil Anda.</p>
             </div>
 
@@ -233,7 +251,7 @@
             <h4 style="font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; margin-top: 0;">Catatan Tindak Lanjut</h4>
             <p style="font-size: 14px; color: var(--ink-60); line-height: 1.6; margin-bottom: 8px;">
                 Hasil ini merupakan kombinasi komprehensif dari sistem AI berdasarkan: <br>
-                <strong>✓ Analisis tulisan tangan &nbsp;&nbsp; ✓ Nilai akademik &nbsp;&nbsp; ✓ Kemampuan diri &nbsp;&nbsp; ✓ Tes Kunci Karier Holland (RIASEC)</strong>
+                <strong>✓ Analisis tulisan tangan &nbsp;&nbsp; ✓ Nilai akademik &nbsp;&nbsp; ✓ Tes Kunci Karier Holland (RIASEC)</strong>
             </p>
             <p style="font-size: 14px; color: var(--ink-60); line-height: 1.6; margin: 0;">
                 Hasil di atas dapat dijadikan bahan refleksi dan diskusi bersama <strong>Guru BK</strong> di sekolahmu untuk memantapkan pilihan jurusan kuliah yang paling selaras dengan potensimu.

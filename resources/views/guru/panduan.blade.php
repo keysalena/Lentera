@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        {{-- 02 — RUANG KONSULTASI / SMART TRIAGE --}}
+        {{-- 02 — RUANG KONSULTASI --}}
         <div class="guide-step">
             <span class="guide-step__num">02</span>
             <div class="guide-step__icon">
@@ -62,9 +62,9 @@
                 </svg>
             </div>
             <div class="guide-step__body">
-                <h3>Ruang Konsultasi (Smart Triage System)</h3>
+                <h3>Ruang Konsultasi</h3>
                 <p>
-                    LENTERA dilengkapi <b>Smart Triage</b> — sistem cerdas yang otomatis
+                    LENTERA dilengkapi sistem cerdas yang otomatis
                     menyaring dan mengurutkan pengajuan konsultasi siswa berdasarkan
                     tingkat urgensinya, jadi Anda tidak perlu lagi menyusun jadwal secara
                     manual. Halaman ini dibagi menjadi 3 tab navigasi:

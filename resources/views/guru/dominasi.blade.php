@@ -3,7 +3,7 @@
 @section('dashboard_content')
 <div class="guru-dominasi" style="animation: fadeIn 0.4s ease-in-out;">
 
-    <!-- ── TOMBOL KEMBALI ── -->
+    
     <div style="margin-bottom: 24px;">
         <a href="{{ route('guru.dashboard') }}" style="display: inline-flex; align-items: center; gap: 8px; color: var(--ink-60); text-decoration: none; font-size: 14px; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='var(--amber)';" onmouseout="this.style.color='var(--ink-60)';">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;">
@@ -18,9 +18,9 @@
         <p style="font-size: 14px; color: var(--ink-60);">Jumlah siswa per bidang hasil rekomendasi AI, serta daftar lengkap siswa di sekolah Anda.</p>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- DIAGRAM BATANG HORIZONTAL: JUMLAH SISWA PER BIDANG        -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    
+    
+    
     <div style="background: var(--white); border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25); padding: 32px; margin-bottom: 32px;">
         <h3 style="font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 24px;">Jumlah Siswa per Bidang</h3>
 
@@ -47,25 +47,25 @@
         @endif
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- DAFTAR SISWA — SAMA SEPERTI HALAMAN guru.siswa ASLI       -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    
+    
+    
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
         <div>
             <h2 style="font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink);">Daftar Siswa</h2>
             <p style="font-size: 14px; color: var(--ink-60);">Kelola dan pantau seluruh data eksplorasi siswa.</p>
         </div>
 
-        <!-- Form Pencarian -->
+        
         <form action="{{ route('guru.dominasi') }}" method="GET" style="display: flex; gap: 12px; align-items: center;">
-            <!-- Kolom Pencarian -->
+            
             <input type="text" name="cari" value="{{ request('cari') }}" placeholder="Cari nama siswa..."
                 style="padding: 12px 16px; border: 1px solid var(--ink-30); border-radius: 10px; width: 260px; outline: none; font-size: 14px;">
             <button type="submit" style="background: var(--amber); color: var(--white); border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer;">Cari</button>
         </form>
     </div>
 
-    <!-- ── TABEL DATA SISWA ── -->
+    
     <div style="background: var(--white); border-radius: 16px; border: 1px solid rgba(171, 168, 159, 0.25); overflow: hidden;">
         <table style="width: 100%; border-collapse: collapse;">
             <thead style="background: var(--cream);">

@@ -16,17 +16,14 @@ class NotifikasiJadwal extends Mailable
     public function __construct($siswa, $jadwal)
     {
         $this->siswa = $siswa;
-        $this->jadwal = $jadwal; // Harus berisi object/array dengan data tanggal, waktu, lokasi/link
+        $this->jadwal = $jadwal; 
     }
 
     public function build()
     {
-        // 1. Format Waktu untuk iCalendar (UTC format: YYYYMMDDThhmmssZ)
-        // Pastikan $this->jadwal->waktu_mulai sudah di-cast ke Carbon
         $waktuMulai = \Carbon\Carbon::parse($this->jadwal->jadwal_konsultasi)->setTimezone('UTC')->format('Ymd\THis\Z');
         $waktuSelesai = \Carbon\Carbon::parse($this->jadwal->jadwal_konsultasi)->addHour()->setTimezone('UTC')->format('Ymd\THis\Z');
 
-        // 2. Buat struktur teks iCalendar
         $icalContent = "BEGIN:VCALENDAR\n" .
             "VERSION:2.0\n" .
             "PRODID:-//LENTERA App//ID\n" .
@@ -40,9 +37,8 @@ class NotifikasiJadwal extends Mailable
             "END:VEVENT\n" .
             "END:VCALENDAR";
 
-        // 3. Kirim Email beserta Lampiran Kalender
         return $this->subject('📅 Konfirmasi Jadwal Konsultasi Karier LENTERA')
-            ->view('emails.jadwal_konseling') // Pastikan file blade ini dibuat
+            ->view('emails.jadwal_konseling') 
             ->attachData($icalContent, 'jadwal_konseling.ics', [
                 'mime' => 'text/calendar',
             ]);

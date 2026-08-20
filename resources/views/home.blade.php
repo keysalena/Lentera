@@ -26,8 +26,6 @@
 
         <div class="hero-right">
             <div class="hero-image-wrapper">
-                <!-- <div class="pulse-ring ring-1"></div>
-                <div class="pulse-ring ring-2"></div> -->
                 <img src="{{ asset('img/logo_L.png') }}" alt="Hero Image" class="hero-main-img">
             </div>
         </div>
@@ -126,14 +124,6 @@
         </div>
     </div>
 </section>
-
-<!-- <div class="quote-section">
-    <div class="quote-inner">
-        <div class="quote-mark">"</div>
-        <p class="quote-text">Awalnya saya kebingungan memetakan arah masa depan. Setelah mengisi data akademik dan mengunggah tulisan tangan, sistem secara akurat memetakan potensi logika analitis saya ke bidang Pendidikan Teknik Informatika.</p>
-        <div class="quote-author">Keysa Lena Misdona — Mahasiswi Pendidikan Teknik Informatika, Offering B</div>
-    </div>
-</div> -->
 <hr>
 <div class="cta-strip">
     <h2>Sudah siap menemukan<br>jurusan yang <em>benar-benar</em> sesuai?</h2>
